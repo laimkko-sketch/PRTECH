@@ -116,6 +116,7 @@ dd{font-variant-numeric:tabular-nums;line-height:1.45}
     <div><dt>외장</dt><dd>T125 내화판넬 벽체, T225 내화판넬 지붕, 박공지붕</dd></div>
     <div><dt>크레인</dt><dd>동당 4대: <span class="num">3t ×2, 2t ×2</span></dd></div>
     <div><dt>개구부</dt><dd>행가도어 <span class="num">5.0 × 5.0 m</span> 2개소, 하이샤시 창호 2단</dd></div>
+    <div><dt>회사·브랜드</dt><dd>PR TECH · 브랜드 BIDAN (지붕 로고)</dd></div>
     <div><dt>부1동</dt><dd><span class="num">23.0 × 11.0 m</span>, 지상 3층<br>1층 식당·주방·접견실 / 2층 사무실·휴게실 / 3층 회의실·방 5실·샤워장</dd></div>
   </dl>
   <div class="ctrls">
@@ -124,7 +125,7 @@ dd{font-variant-numeric:tabular-nums;line-height:1.45}
     <label><input type="checkbox" id="tCrane" checked>크레인</label>
     <label><input type="checkbox" id="tLabel" checked>라벨</label>
   </div>
-  <p class="note">주1동·주2동은 배치도에 동 번호가 없어 북측·남측으로 표시했습니다. 부1동은 입면도가 없어 층고 3.6 m를 가정했고, 내부 가구는 실 용도에 맞춰 임의로 배치했습니다. 기초·토목·주차장은 생략했습니다.</p>
+  <p class="note">주1동·주2동은 배치도에 동 번호가 없어 북측·남측으로 표시했습니다. 부1동은 입면도가 없어 층고 3.6 m를 가정했고, 내부 가구는 실 용도에 맞춰 임의로 배치했습니다. 필지·지목·도로·완충녹지·인접 건물은 배치도 기준이고, 산·수목·논밭 무늬·차량은 이미지 연출용으로 임의 배치했습니다.</p>
 </details>
 
 <div class="views" role="group" aria-label="시점">
@@ -154,11 +155,26 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 const O = {x:460000, y:640000};
 const P = (X,Y) => new THREE.Vector3((X-O.x)/1000, 0, -(Y-O.y)/1000);
 const FACT = [
-  {name:'주동 (북측)', p0:[395472,679721], pu:[535724,626530], pv:[404338,703097]},
-  {name:'주동 (남측)', p0:[528263,610108], pu:[388011,663300], pv:[519398,586733]},
+  {name:'주동 (북측)', p0:[395472,679721], pu:[535724,626530], pv:[404338,703097], ysouth:true, logoKind:'prtech'},
+  {name:'주동 (남측)', p0:[528263,610108], pu:[388011,663300], pv:[519398,586733], ysouth:false, logoKind:'bidan'},
 ];
 const ANNEX = {name:'부1동', p0:[494319,684091], dir:[21199,-8896]};
 const L=150, W=25, TALL=15;
+function logoTex(kind){
+  const c=document.createElement('canvas'); c.width=2400; c.height=380; const g=c.getContext('2d');
+  if(kind==='prtech'){
+    g.font='italic 900 300px "Arial Black","Arial",sans-serif'; g.textBaseline='middle'; g.textAlign='center';
+    g.lineWidth=18; g.strokeStyle='rgba(255,255,255,.92)'; g.strokeText('PR TECH',1200,200); g.fillStyle='#e1262c'; g.fillText('PR TECH',1200,200);
+  } else {
+    // BIDAN: original silk-ribbon mark + wordmark
+    const bands=[['#14306b',0],['#1a8f9c',46],['#d4a62a',92]];
+    for(const [col,o] of bands){ g.beginPath(); g.moveTo(120,250-o*.6); g.bezierCurveTo(260,40-o*.6,380,360-o*.6,560,120-o*.6);
+      g.lineWidth=40; g.strokeStyle='rgba(255,255,255,.95)'; g.lineCap='round'; g.stroke(); g.lineWidth=28; g.strokeStyle=col; g.stroke(); }
+    g.font='900 270px "Arial Black","Arial",sans-serif'; g.textBaseline='middle'; g.textAlign='left';
+    g.lineWidth=16; g.strokeStyle='rgba(255,255,255,.92)'; g.strokeText('BIDAN',640,200); g.fillStyle='#14306b'; g.fillText('BIDAN',640,200);
+  }
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8; return t;
+}
 const EAVE=11.0, RIDGE=13.6, EAVE_T=15.0, RIDGE_T=17.6;
 const WIN_U=[7.55,17.55,27.55,47.55,57.55,67.55,82.55,92.55,112.55,122.55,132.55,142.55];
 const WIN_U_UP=[...WIN_U,37.55,102.55];
@@ -180,12 +196,12 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.05;
 stage.appendChild(renderer.domElement);
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(42, 1, 0.5, 4000);
+const camera = new THREE.PerspectiveCamera(42, 1, 0.5, 5000);
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true; controls.maxPolarAngle = Math.PI*0.495; controls.minDistance = 4; controls.maxDistance = 900;
+controls.enableDamping = true; controls.maxPolarAngle = Math.PI*0.495; controls.minDistance = 4; controls.maxDistance = 1400;
 
-const hemi = new THREE.HemisphereLight(0xffffff, 0x8a8a80, 1.15); scene.add(hemi);
-const sun = new THREE.DirectionalLight(0xfff4e2, 2.1);
+const hemi = new THREE.HemisphereLight(0xe3f0ff, 0x6f7a52, 1.05); scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xfff1dc, 2.5);
 sun.position.set(-90,160,110); sun.castShadow = true;
 sun.shadow.mapSize.set(SMALL?2048:4096,SMALL?2048:4096);
 Object.assign(sun.shadow.camera,{left:-170,right:170,top:170,bottom:-170,near:10,far:500});
@@ -207,8 +223,8 @@ const doorTex = canvasTex((g,w,h)=>{ g.fillStyle='#ffffff'; g.fillRect(0,0,w,h);
 
 /* ---------- materials ---------- */
 const M = {
-  wall:new THREE.MeshStandardMaterial({map:panelTex,roughness:.75,metalness:.05,side:THREE.DoubleSide}),
-  roof:new THREE.MeshStandardMaterial({map:roofTex,roughness:.55,metalness:.35,side:THREE.DoubleSide}),
+  wall:new THREE.MeshStandardMaterial({map:panelTex,color:0xe2e5e6,roughness:.75,metalness:.05,side:THREE.DoubleSide}),
+  roof:new THREE.MeshStandardMaterial({map:roofTex,color:0x2f7bd2,roughness:.5,metalness:.3,side:THREE.DoubleSide}),
   glass:new THREE.MeshStandardMaterial({color:0x2c3e4a,roughness:.15,metalness:.6}),
   frame:new THREE.MeshStandardMaterial({color:0xa8b0b4,roughness:.5,metalness:.5}),
   door:new THREE.MeshStandardMaterial({map:doorTex,color:0x6f7a80,roughness:.6,metalness:.4}),
@@ -218,17 +234,18 @@ const M = {
   hook:new THREE.MeshStandardMaterial({color:0x2a2f33,roughness:.5,metalness:.6}),
   ground:new THREE.MeshStandardMaterial({roughness:1}),
   pad:new THREE.MeshStandardMaterial({roughness:.95}),
-  annex:new THREE.MeshStandardMaterial({color:0xe9e7e2,roughness:.8}),
+  annex:new THREE.MeshStandardMaterial({color:0xe2e1dc,roughness:.8}),
   band:new THREE.MeshStandardMaterial({color:0x3b4247,roughness:.6,metalness:.2}),
+  dado:new THREE.MeshStandardMaterial({color:0x8e979c,roughness:.7,metalness:.15}),
+  fascia:new THREE.MeshStandardMaterial({color:0x2a6fc0,roughness:.5,metalness:.3}),
+  vent:new THREE.MeshStandardMaterial({color:0xdfe3e5,roughness:.5,metalness:.4}),
 };
 const wallMats=[M.wall,M.roof];
 
-function applyTheme(){
-  scene.background = new THREE.Color(css('--sky'));
-  scene.fog = new THREE.Fog(css('--sky'), 380, 1500);
-  M.ground.color.set(css('--ground')); M.pad.color.set(css('--pad'));
-  M.wall.color.set(css('--wall')); M.roof.color.set(css('--roof')); M.steel.color.set(css('--steel'));
-  M.crane.color.set(css('--accent'));
+function applyTheme(){ /* the 3D world keeps one daylight palette in both UI themes */
+  scene.background = new THREE.Color(0xcfe2f1);
+  scene.fog = new THREE.Fog(0xcfe2f1, 700, 2300);
+  M.pad.color.set(0xc4c4be); M.steel.color.set(0x5e6a73); M.crane.color.set(0xe2a20b);
 }
 
 /* ---------- helpers ---------- */
@@ -256,6 +273,7 @@ const world=new THREE.Group(); scene.add(world);
 
 /* ---------- factory ---------- */
 function buildFactory(f){
+  f.logo={tex:logoTex(f.logoKind),u:82,w:76,h:12};
   const g=new THREE.Group();
   const o=P(...f.p0), U=P(...f.pu).sub(o).divideScalar(L), V=P(...f.pv).sub(o).divideScalar(W);
   g.matrixAutoUpdate=false;
@@ -281,6 +299,19 @@ function buildFactory(f){
   roofPlane(-0.3,TALL,W+oh,EAVE_T-oh*slopeT,W/2,RIDGE_T,g);
   roofPlane(TALL,L+0.3,-oh,EAVE-oh*slope,W/2,RIDGE,g);
   roofPlane(TALL,L+0.3,W+oh,EAVE-oh*slope,W/2,RIDGE,g);
+  // 사진 스타일: 하부 걸레받이 밴드, 청색 처마 후레싱, 용마루 환기구
+  for(const z of [-0.07,W+0.07]){ box(L,1.2,0.06,M.dado,L/2,0.6,z,g,false);
+    box(TALL+0.3,0.42,0.12,M.fascia,TALL/2-0.15,EAVE_T-0.32,z<1?-0.42:W+0.42,g,false); box(L-TALL+0.3,0.42,0.12,M.fascia,(L+TALL)/2+0.15,EAVE-0.32,z<1?-0.42:W+0.42,g,false); }
+  for(const x of [-0.07,L+0.07]) box(0.06,1.2,W,M.dado,x,0.6,W/2,g,false);
+  for(let u=21;u<L-3;u+=7.5){ roofs.push(box(1.8,0.55,1.3,M.vent,u,RIDGE+0.45,W/2,g)); }
+  for(const u of [4.5,10.5]) roofs.push(box(1.8,0.55,1.3,M.vent,u,RIDGE_T+0.45,W/2,g));
+  if(f.logo){ // logo decal on the south-facing roof slope
+    const phi=Math.atan((RIDGE-EAVE)/(W/2)), s=Math.sin(phi), c=Math.cos(phi), north=f.ysouth;
+    const X=new THREE.Vector3(north?1:-1,0,0), Y=new THREE.Vector3(0,s,north?c:-c), Z=new THREE.Vector3().crossVectors(X,Y);
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(f.logo.w,f.logo.h),new THREE.MeshStandardMaterial({map:f.logo.tex,transparent:true,depthWrite:false,roughness:.55,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-4}));
+    m.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(X,Y,Z));
+    m.position.set(f.logo.u,(EAVE+RIDGE)/2+0.26,north?W/4:W*3/4); g.add(m); roofs.push(m);
+  }
   roofs.push(box(TALL+0.3,0.3,0.6,M.frame,TALL/2-0.15,RIDGE_T+0.3,W/2,g));
   roofs.push(box(L-TALL+0.3,0.3,0.6,M.frame,(L+TALL)/2+0.15,RIDGE+0.3,W/2,g));
 
@@ -550,22 +581,91 @@ function mk(cls,text){ const e=document.createElement('div'); e.className=cls; e
 FACT.forEach(buildFactory); buildAnnex(ANNEX);
 FACT.forEach(f=>f.inv=f.g.matrix.clone().invert());
 
-/* ---------- ground + paved yard (convex hull of building corners, offset 12 m) ---------- */
+const CTX={"site":[[-92.6,57.8],[-92.6,57.8],[-71.0,68.4],[-54.5,76.5],[-29.7,95.8],[-29.0,96.3],[-19.4,97.9],[3.0,93.4],[15.3,81.7],[22.0,63.3],[31.0,63.6],[38.0,55.9],[68.2,43.5],[72.8,51.6],[96.8,15.5],[93.5,-8.1],[100.2,-26.9],[100.0,-35.6],[95.7,-57.7],[-18.0,-63.8],[-17.0,-61.8],[-22.9,-53.9],[-24.1,-48.5],[-31.0,-43.6],[-34.8,-32.1],[-42.5,-26.0],[-47.6,-19.0],[-96.8,-12.8],[-105.0,-16.8],[-112.4,-15.1],[-121.4,-15.4],[-160.4,-19.4],[-177.7,-28.6],[-180.1,-28.7],[-181.6,-27.0],[-183.3,-20.5],[-184.6,-15.3],[-182.2,-14.3],[-178.4,-13.0],[-175.7,-12.0],[-173.0,-11.0],[-171.5,-10.4],[-170.4,-10.1],[-167.4,-8.9],[-164.4,-7.8],[-159.6,-5.9],[-153.9,-3.8],[-149.1,-1.9],[-144.4,-0.2],[-143.3,0.2],[-141.8,0.8],[-135.5,3.1],[-128.7,8.3],[-122.1,13.2],[-114.8,18.8],[-107.0,22.5],[-100.8,27.2],[-93.1,33.8],[-86.6,38.4],[-95.1,52.4],[-92.6,57.8]],"band":[{"o":[[-188.2,-35.3],[-189.8,-34.3],[-190.2,-32.8],[-191.7,-31.7],[-191.5,-29.6],[-192.7,-27.8],[-192.4,-26.0],[-193.6,-24.4],[-193.2,-22.3],[-194.5,-20.4],[-193.2,-18.0],[-194.5,-16.0],[-193.2,-13.7],[-194.5,-11.5],[-187.8,-4.9],[-187.0,-5.3],[-186.8,-7.2],[-185.4,-8.6],[-185.7,-10.6],[-184.4,-12.4],[-184.8,-13.7],[-184.5,-14.7],[-185.1,-15.4],[-182.1,-27.2],[-180.1,-29.2],[-176.6,-28.9],[-170.1,-25.1],[-168.4,-25.3],[-165.9,-23.0],[-160.6,-20.1],[-159.4,-20.5],[-158.2,-19.7],[-121.3,-15.9],[-112.5,-15.6],[-104.9,-17.3],[-96.8,-13.3],[-95.4,-14.4],[-93.8,-13.6],[-47.8,-19.4],[-42.8,-26.4],[-35.2,-32.4],[-31.4,-43.9],[-24.6,-48.8],[-23.4,-54.2],[-17.6,-61.8],[-18.5,-63.7],[-18.1,-64.3],[96.0,-58.1],[96.8,-56.2],[100.0,-39.5],[100.5,-35.6],[100.7,-26.9],[94.0,-8.0],[97.3,15.6],[74.0,50.8],[74.3,52.2],[73.1,54.1],[74.3,56.4],[73.0,58.4],[74.3,60.9],[73.0,62.9],[74.3,65.3],[73.0,67.4],[78.9,73.8],[79.1,74.9],[77.9,76.3],[78.0,77.3],[84.0,83.5],[84.1,84.6],[83.0,85.8],[82.9,86.5],[87.3,91.3],[87.3,92.5],[86.2,93.7],[86.3,94.6],[91.1,99.5],[91.1,100.5],[90.0,101.8],[89.9,102.5],[92.5,105.3],[92.9,106.2],[91.7,108.7],[94.6,112.2],[93.4,114.9],[96.3,118.4],[95.1,121.2],[98.4,124.9],[98.3,125.9],[97.2,127.4],[98.8,130.3],[97.6,132.2],[98.4,134.4],[97.2,136.3],[98.0,138.5],[96.8,140.3],[97.6,142.5],[96.4,144.4],[97.2,146.7],[96.0,148.8],[96.8,150.8],[95.5,152.8],[96.4,154.8],[95.2,157.2],[96.9,158.9],[99.6,157.7],[103.1,160.7],[104.4,160.4],[104.4,159.2],[100.3,155.3],[99.4,153.8],[100.7,151.5],[99.9,149.1],[101.1,147.5],[100.2,145.2],[101.5,143.4],[100.6,141.2],[101.9,139.3],[101.0,137.0],[102.3,135.2],[101.4,132.9],[102.7,131.1],[100.4,127.9],[101.6,125.2],[98.4,121.6],[98.5,120.5],[99.6,118.8],[96.7,115.4],[96.8,114.3],[97.9,112.7],[95.0,109.1],[95.0,108.2],[96.1,107.0],[96.1,106.2],[93.2,102.9],[93.3,101.9],[94.3,100.8],[94.4,99.9],[91.5,96.6],[91.5,95.7],[92.6,94.5],[92.6,93.7],[87.7,88.6],[87.6,87.5],[88.7,86.1],[88.6,85.1],[83.6,79.9],[83.6,78.8],[84.7,76.9],[81.8,73.6],[81.8,72.6],[83.0,70.7],[80.0,67.3],[80.0,66.2],[81.2,64.5],[79.3,61.7],[80.5,59.9],[80.8,58.4],[82.2,57.4],[82.6,55.7],[84.0,54.7],[84.4,53.0],[85.8,52.0],[86.2,50.3],[87.6,49.3],[88.0,47.6],[89.4,46.6],[89.7,44.9],[91.2,43.9],[91.5,42.3],[93.0,41.2],[93.3,39.6],[94.8,38.5],[95.1,36.9],[96.6,35.8],[97.0,34.2],[98.4,33.1],[98.8,31.5],[100.2,30.4],[100.6,28.8],[102.0,27.8],[102.4,26.1],[103.8,25.0],[104.1,23.3],[105.4,22.3],[105.8,20.6],[107.4,19.1],[106.5,16.9],[107.8,14.7],[105.7,11.9],[107.0,9.4],[105.0,6.7],[106.3,4.2],[104.3,1.6],[105.6,-1.0],[103.6,-3.8],[104.9,-5.7],[104.5,-7.8],[105.7,-9.4],[105.6,-11.4],[106.8,-12.7],[106.7,-14.5],[108.0,-16.0],[107.9,-17.9],[109.2,-19.3],[109.1,-21.2],[110.4,-22.7],[110.0,-24.7],[111.2,-26.7],[109.9,-29.1],[111.1,-31.3],[109.8,-33.7],[111.0,-35.9],[108.9,-38.7],[110.1,-41.5],[107.9,-44.2],[109.1,-47.0],[106.8,-49.8],[108.0,-52.6],[105.6,-55.4],[106.9,-58.2],[104.5,-61.0],[105.7,-63.8],[101.4,-68.3],[100.5,-68.3],[98.6,-67.1],[96.2,-68.7],[93.8,-67.4],[91.5,-68.9],[89.2,-67.6],[86.7,-69.1],[84.3,-67.9],[82.0,-69.4],[79.6,-68.1],[77.3,-69.6],[74.9,-68.4],[72.5,-69.9],[70.2,-68.6],[67.8,-70.1],[65.4,-68.8],[63.1,-70.4],[60.7,-69.1],[58.3,-70.6],[55.9,-69.3],[53.6,-70.8],[51.3,-69.6],[48.9,-71.1],[46.6,-69.8],[44.1,-71.3],[41.8,-70.1],[39.4,-71.6],[37.0,-70.3],[34.7,-71.8],[32.4,-70.5],[29.9,-72.1],[27.6,-70.8],[25.2,-72.3],[22.9,-71.0],[20.5,-72.5],[18.2,-71.3],[15.8,-72.8],[13.5,-71.5],[11.0,-73.0],[8.7,-71.8],[6.3,-73.3],[4.0,-72.0],[1.6,-73.5],[-0.8,-72.2],[-3.2,-73.7],[-5.4,-72.5],[-7.9,-74.0],[-10.2,-72.7],[-12.6,-74.2],[-14.8,-73.0],[-17.4,-74.5],[-19.5,-73.2],[-22.1,-74.7],[-24.0,-73.5],[-26.1,-73.8],[-26.8,-73.1],[-26.7,-70.9],[-27.7,-70.0],[-28.2,-68.5],[-30.0,-67.3],[-29.8,-66.4],[-27.9,-64.4],[-27.9,-63.1],[-28.9,-62.0],[-29.3,-60.5],[-30.8,-59.5],[-30.8,-57.6],[-32.1,-56.3],[-32.6,-54.4],[-33.7,-53.8],[-34.5,-52.4],[-36.2,-51.9],[-37.1,-50.5],[-39.0,-49.7],[-38.9,-47.5],[-40.1,-46.0],[-39.9,-44.1],[-41.2,-42.7],[-41.1,-40.7],[-42.2,-39.6],[-42.8,-38.0],[-44.1,-37.2],[-44.9,-35.8],[-46.5,-35.3],[-47.4,-33.8],[-49.1,-33.2],[-49.6,-31.6],[-51.0,-30.6],[-51.6,-29.1],[-54.0,-27.5],[-56.5,-28.0],[-58.4,-26.7],[-60.4,-27.4],[-62.3,-26.2],[-64.4,-26.9],[-66.2,-25.6],[-68.2,-26.5],[-70.4,-25.2],[-72.5,-26.1],[-74.4,-24.8],[-76.5,-25.6],[-78.3,-24.4],[-80.5,-25.2],[-82.3,-23.9],[-84.5,-24.7],[-86.7,-23.4],[-88.6,-24.2],[-90.3,-23.0],[-92.6,-23.8],[-94.8,-22.5],[-100.1,-27.0],[-102.5,-25.7],[-105.2,-27.3],[-106.9,-26.1],[-108.9,-26.5],[-110.8,-25.2],[-112.6,-25.7],[-114.7,-24.5],[-117.1,-25.9],[-119.1,-24.7],[-121.8,-26.1],[-123.3,-25.0],[-124.3,-24.9],[-126.7,-26.7],[-129.3,-25.4],[-131.8,-27.3],[-134.2,-26.0],[-136.9,-27.8],[-139.4,-26.6],[-141.9,-28.4],[-144.5,-27.2],[-147.0,-29.0],[-149.4,-27.7],[-152.1,-29.6],[-154.6,-28.3],[-157.1,-30.1],[-159.6,-28.9],[-166.1,-34.9],[-167.1,-35.0],[-168.5,-33.9],[-169.6,-34.0],[-175.5,-39.5],[-177.7,-38.3],[-180.1,-39.8],[-182.5,-38.5],[-185.0,-39.7],[-186.1,-37.8],[-187.7,-36.9],[-188.2,-35.3]],"h":[]}],"voids":[{"o":[[-193.5,-81.3],[-193.5,159.8],[119.7,159.8],[119.7,-81.3],[-46.1,-81.3],[-36.5,-75.7],[-27.3,-80.6],[-26.8,-78.5],[-27.1,-74.2],[-27.1,-74.2],[102.7,-67.6],[110.4,-27.8],[102.7,-67.6],[64.1,-69.6],[62.5,-66.5],[54.1,-68.7],[53.0,-70.1],[-27.1,-74.2],[-27.3,-70.8],[-30.4,-67.5],[-30.4,-66.7],[-28.7,-63.0],[-31.7,-58.3],[-32.6,-54.3],[-39.0,-49.7],[-42.6,-38.2],[-49.1,-33.1],[-50.3,-31.5],[-66.5,-32.2],[-80.3,-35.1],[-82.4,-46.9],[-79.7,-57.3],[-81.3,-61.3],[-77.3,-61.4],[-73.4,-68.0],[-68.7,-72.8],[-60.2,-77.4],[-53.7,-75.1],[-53.0,-81.3],[-193.5,-81.3]],"h":[[[-98.6,29.1],[-100.8,27.2],[-107.0,22.5],[-114.8,18.8],[-135.5,3.1],[-184.6,-15.3],[-181.6,-27.0],[-180.1,-28.7],[-177.7,-28.6],[-160.4,-19.4],[-121.4,-15.4],[-112.4,-15.1],[-105.0,-16.8],[-96.8,-12.8],[-47.6,-19.0],[-42.5,-26.0],[-34.8,-32.1],[-31.0,-43.6],[-24.1,-48.5],[-22.9,-53.9],[-17.0,-61.8],[-18.0,-63.8],[95.7,-57.7],[100.0,-35.6],[100.2,-26.9],[93.5,-8.1],[96.8,15.5],[72.8,51.6],[68.2,43.5],[38.0,55.9],[31.4,63.2],[40.7,131.9],[37.5,135.0],[30.2,134.5],[-39.1,134.7],[-43.3,149.5],[-42.9,149.7],[-77.3,149.8],[-81.4,153.3],[-81.5,154.0],[-84.6,147.8],[-93.7,154.9],[-93.5,153.3],[-97.7,149.9],[-111.4,149.9],[-114.4,145.5],[-123.8,140.3],[-130.9,141.4],[-134.4,143.8],[-134.7,139.9],[-176.9,108.4],[-179.1,108.9],[-181.6,108.7],[-183.9,107.7],[-185.8,106.1],[-187.2,103.7],[-187.7,101.3],[-187.4,98.5],[-186.3,96.3],[-184.3,94.3],[-182.1,93.2],[-179.3,92.9],[-176.8,93.4],[-174.5,94.9],[-172.9,96.8],[-171.9,99.4],[-171.9,102.2],[-145.5,121.8],[-149.0,114.4],[-149.6,107.5],[-152.8,109.1],[-158.1,88.6],[-157.2,78.2],[-152.7,72.7],[-152.5,68.4],[-148.3,66.6],[-139.5,67.8],[-132.6,69.6],[-129.0,78.8],[-133.2,86.6],[-129.1,102.3],[-124.3,112.3],[-122.2,114.1],[-117.7,115.4],[-116.2,120.7],[-105.5,126.5],[-105.1,114.9],[-111.4,107.2],[-114.0,103.4],[-117.0,78.4],[-120.1,72.1],[-131.1,53.5],[-125.5,43.2],[-120.2,36.6],[-107.0,22.5],[-98.6,29.1]],[[38.3,55.7],[61.7,46.1],[77.0,69.5],[84.8,84.1],[87.8,92.8],[91.5,92.8],[92.1,94.9],[46.2,112.6],[38.3,55.7]],[[98.1,156.0],[84.2,155.1],[82.2,150.8],[86.4,139.9],[101.3,130.7],[98.1,156.0]]]}],"parcels":[{"o":[[-81.5,154.0],[-81.4,153.3],[-77.3,149.8],[-42.9,149.7],[-84.6,147.8],[-81.5,154.0]],"h":[],"jm":"장"},{"o":[[-31.5,134.7],[-30.1,102.3],[-39.1,134.7],[-31.5,134.7]],"h":[],"jm":"장"},{"o":[[-31.5,134.7],[30.2,134.5],[37.5,135.0],[40.7,131.9],[36.4,100.7],[34.0,99.0],[35.9,96.7],[35.4,92.9],[25.4,92.9],[10.9,102.5],[-7.7,107.0],[-30.1,102.3],[-31.5,134.7]],"h":[],"jm":"장"},{"o":[[87.8,92.8],[43.5,92.9],[46.2,112.6],[88.7,96.2],[87.8,92.8]],"h":[],"jm":"장"},{"o":[[38.4,56.2],[43.5,92.9],[87.8,92.8],[84.8,84.1],[77.0,69.5],[62.0,46.6],[38.4,56.2]],"h":[],"jm":"장"},{"o":[[15.3,81.7],[3.0,93.4],[-19.4,97.9],[-29.0,96.3],[-29.7,95.8],[-30.1,102.3],[-7.7,107.0],[10.9,102.5],[25.4,92.9],[35.4,92.9],[31.4,63.2],[31.0,63.6],[22.0,63.3],[15.3,81.7]],"h":[],"jm":"장"},{"o":[[-126.0,43.9],[-114.0,65.9],[-110.5,69.7],[-100.2,83.0],[-94.8,76.6],[-88.7,67.5],[-92.6,57.8],[-114.9,46.6],[-119.1,35.5],[-126.0,43.9]],"h":[],"jm":"전"},{"o":[[-114.9,46.6],[-92.6,57.8],[-95.1,52.4],[-86.6,38.4],[-93.1,33.8],[-107.0,22.5],[-119.1,35.5],[-114.9,46.6]],"h":[],"jm":"묘"},{"o":[[-105.1,114.9],[-97.0,124.4],[-87.6,126.2],[-77.4,131.5],[-77.2,131.3],[-76.4,108.2],[-72.4,108.4],[-71.0,68.4],[-92.6,57.8],[-88.7,67.5],[-94.8,76.6],[-100.2,83.0],[-103.8,78.3],[-105.1,114.9]],"h":[],"jm":"장"},{"o":[[-110.5,69.7],[-114.0,65.9],[-126.0,43.9],[-131.1,53.5],[-120.1,72.1],[-117.0,78.4],[-114.0,103.4],[-111.4,107.2],[-105.1,114.9],[-103.8,78.3],[-110.5,69.7]],"h":[],"jm":"묘"},{"o":[[-68.4,108.5],[-69.2,131.3],[-65.8,134.8],[-39.1,134.7],[-30.1,102.3],[-29.7,95.8],[-54.5,76.5],[-71.0,68.4],[-72.4,108.4],[-68.4,108.5]],"h":[],"jm":"장"},{"o":[[-50.3,-31.5],[-49.1,-33.1],[-42.6,-38.2],[-39.0,-49.7],[-32.6,-54.3],[-31.7,-58.3],[-28.7,-63.0],[-30.4,-66.7],[-30.4,-67.5],[-27.3,-70.8],[-27.1,-74.2],[-50.3,-31.5]],"h":[],"jm":"답"},{"o":[[-103.5,127.5],[-92.0,128.3],[-86.9,134.1],[-87.6,126.2],[-97.0,124.4],[-105.1,114.9],[-105.5,126.5],[-103.5,127.5]],"h":[],"jm":"임"},{"o":[[-93.7,154.9],[-84.6,147.8],[-86.8,134.8],[-115.0,134.9],[-121.9,136.1],[-127.7,135.2],[-145.5,121.8],[-142.2,133.6],[-136.2,134.3],[-138.0,137.5],[-134.7,139.9],[-134.4,143.8],[-130.9,141.4],[-123.8,140.3],[-114.4,145.5],[-111.4,149.9],[-97.7,149.9],[-93.5,153.3],[-93.7,154.9]],"h":[],"jm":"답"},{"o":[[-127.7,135.2],[-121.9,136.1],[-115.9,135.0],[-105.8,134.9],[-105.5,126.5],[-116.2,120.7],[-117.7,115.4],[-122.2,114.1],[-124.3,112.3],[-126.4,108.1],[-129.1,102.3],[-133.2,86.6],[-129.0,78.8],[-132.6,69.6],[-139.5,67.8],[-148.3,66.6],[-152.5,68.4],[-152.7,72.7],[-157.2,78.2],[-158.1,88.6],[-152.8,109.1],[-149.6,107.5],[-149.0,114.4],[-145.5,121.8],[-127.7,135.2]],"h":[],"jm":"장"},{"o":[[-105.8,134.9],[-97.5,134.9],[-86.8,134.8],[-86.9,134.1],[-92.0,128.3],[-103.5,127.5],[-105.5,126.5],[-105.8,134.9]],"h":[],"jm":"임"},{"o":[[53.0,-70.1],[54.1,-68.7],[62.5,-66.5],[64.1,-69.6],[53.0,-70.1]],"h":[],"jm":"답"},{"o":[[84.2,155.1],[92.8,155.2],[98.1,156.0],[101.3,130.7],[86.4,139.9],[82.2,150.8],[84.2,155.1]],"h":[],"jm":"임"},{"o":[[-87.6,126.2],[-86.8,134.8],[-80.8,134.8],[-77.4,131.5],[-87.6,126.2]],"h":[],"jm":"장"},{"o":[[-86.8,134.8],[-84.6,147.8],[-43.3,149.5],[-77.4,131.5],[-80.8,134.8],[-86.8,134.8]],"h":[],"jm":"임"},{"o":[[-43.3,149.5],[-39.1,134.7],[-65.8,134.8],[-69.2,131.3],[-68.4,108.5],[-76.4,108.2],[-77.4,131.5],[-43.3,149.5]],"h":[],"jm":"장"},{"o":[[-186.4,96.5],[-187.6,99.3],[-187.7,102.1],[-186.8,104.7],[-184.8,107.1],[-181.1,108.8],[-176.9,108.4],[-138.0,137.5],[-136.2,134.3],[-142.2,133.6],[-145.5,121.8],[-171.9,102.2],[-172.3,98.1],[-174.5,94.9],[-177.4,93.2],[-180.7,92.9],[-184.1,94.1],[-186.4,96.5]],"h":[],"jm":"임"},{"o":[[-36.5,-75.7],[-48.0,-82.5],[-47.1,-91.0],[-52.8,-82.8],[-53.7,-75.1],[-60.2,-77.4],[-68.7,-72.8],[-73.4,-68.0],[-77.3,-61.4],[-81.3,-61.3],[-79.7,-57.3],[-82.4,-46.9],[-80.3,-35.1],[-66.5,-32.2],[-50.3,-31.5],[-49.1,-33.1],[-42.6,-38.2],[-39.0,-49.7],[-32.6,-54.3],[-31.7,-58.3],[-28.7,-63.0],[-30.4,-66.7],[-30.4,-67.5],[-27.3,-70.8],[-26.8,-78.5],[-27.3,-80.6],[-36.5,-75.7]],"h":[],"jm":"답"}],"bldg":[[[49.2,93.1],[55.8,103.5],[68.7,95.4],[62.2,84.9],[49.2,93.1]],[[32.4,130.4],[32.3,104.4],[-29.1,103.7],[-28.9,129.7],[32.4,130.4]],[[-173.7,62.5],[-141.1,81.0],[-130.2,62.2],[-162.6,43.0],[-173.7,62.5]],[[-67.1,127.9],[-35.1,128.9],[-34.3,103.0],[-66.3,102.0],[-67.1,127.9]],[[-66.2,98.5],[-52.3,98.8],[-52.2,90.9],[-66.0,90.6],[-66.2,98.5]],[[85.1,88.6],[61.9,49.0],[48.5,56.9],[71.6,96.5],[85.1,88.6]],[[59.3,123.2],[92.1,109.8],[89.5,103.5],[56.7,117.0],[59.3,123.2]],[[79.7,143.4],[99.8,136.2],[91.4,111.9],[71.2,119.1],[79.7,143.4]]],"frame":[[-193.5,-81.3],[119.7,159.8]],"roads":[{"o":[[-137.4,142.3],[-136.6,152.4],[-113.1,135.9],[-113.1,139.2],[31.3,138.8],[31.3,137.6],[64.2,146.1],[52.9,132.3],[41.9,55.3],[38.0,55.9],[34.5,59.7],[35.0,63.0],[31.4,63.6],[31.4,63.1],[31.0,63.6],[22.0,63.3],[20.6,67.3],[27.5,67.5],[36.5,130.6],[31.3,135.9],[31.3,130.8],[-63.0,131.0],[-65.2,128.8],[-67.6,131.1],[-72.1,131.1],[-71.4,112.6],[-67.4,112.8],[-67.2,104.8],[-79.2,104.3],[-80.0,129.8],[-81.3,131.1],[-113.1,131.2],[-113.1,133.5],[-125.0,131.6],[-168.4,99.2],[-170.8,102.4],[-173.9,99.9],[-178.9,106.1],[-175.8,108.6],[-178.2,111.8],[-137.4,142.3]],"h":[[[-129.9,137.9],[-137.5,132.3],[-148.4,124.2],[-129.9,137.9],[-129.9,137.9]]]},{"o":[[-79.8,154.1],[-77.7,156.6],[-74.7,154.1],[31.4,153.8],[31.3,145.8],[-113.0,146.2],[-113.0,154.2],[-98.1,154.1],[-95.0,156.7],[-92.8,154.1],[-79.8,154.1]],"h":[]},{"o":[[69.2,143.7],[64.3,150.0],[76.9,159.8],[83.4,159.8],[85.9,156.7],[69.2,143.7]],"h":[]}]};
+/* ---------- surroundings from 건물배치도 (지적·지목·도로·완충녹지·인접 건물) + 임의 산림 지형 ---------- */
+const SITEC=(()=>{ let x=0,y=0; CTX.site.forEach(p=>{x+=p[0];y+=p[1];}); return [x/CTX.site.length,y/CTX.site.length]; })();
+window.__siteCenter=new THREE.Vector3(SITEC[0],0,-SITEC[1]);
+const toShape=(poly)=>{ const sh=new THREE.Shape(poly.o.map(p=>new THREE.Vector2(p[0],p[1]))); (poly.h||[]).forEach(h=>sh.holes.push(new THREE.Path(h.map(p=>new THREE.Vector2(p[0],p[1]))))); return sh; };
+function flat(poly,color,y,tex){ const m=new THREE.Mesh(new THREE.ShapeGeometry(toShape(poly)),new THREE.MeshStandardMaterial({color,roughness:.95,map:tex||null}));
+  m.rotation.x=-Math.PI/2; m.position.y=y; m.receiveShadow=true; scene.add(m); return m; }
+function inPoly(x,y,pts){ let c=false; for(let i=0,j=pts.length-1;i<pts.length;j=i++){ const [xi,yi]=pts[i],[xj,yj]=pts[j]; if(((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi)) c=!c; } return c; }
+const rnd=(()=>{ let s=20261028; return ()=>((s=Math.imul(s^s>>>15,1|s)+0x6D2B79F5|0,((s^s>>>14)>>>0)/4294967296)); })();
+const hash=(x,y)=>{ const h=Math.sin(x*127.1+y*311.7)*43758.5453; return h-Math.floor(h); };
+function vnoise(x,y){ const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi,u=xf*xf*(3-2*xf),v=yf*yf*(3-2*yf);
+  const a=hash(xi,yi),b=hash(xi+1,yi),c=hash(xi,yi+1),d=hash(xi+1,yi+1); return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v; }
+const fbm=(x,y)=>{ let s=0,a=.5,f=1; for(let i=0;i<5;i++){ s+=a*vnoise(x*f,y*f); f*=2.03; a*=.5; } return s; };
+const FX0=CTX.frame[0][0], FY0=CTX.frame[0][1], FX1=CTX.frame[1][0], FY1=CTX.frame[1][1];
+const frameDist=(x,y)=>{ const dx=Math.max(FX0-x,0,x-FX1), dy=Math.max(FY0-y,0,y-FY1); if(dx||dy) return Math.hypot(dx,dy); return -Math.min(x-FX0,FX1-x,y-FY0,FY1-y); };
+const smooth=(a,b,x)=>{ const t=Math.min(1,Math.max(0,(x-a)/(b-a))); return t*t*(3-2*t); };
+// south of the drawing frame stays a paddy plain, the other sides rise into forested hills
+function terrainH(x,y){ const d=frameDist(x,y); if(d<=0) return -0.2;
+  const southPlain=y<FY0 ? smooth(260,520,d) : 1;
+  return -0.2+smooth(0,160,d)*(10+34*fbm(x*.0042+3,y*.0042))*southPlain + smooth(180,900,d)*(70*fbm(x*.0016,y*.0016+7))*southPlain; }
+const farmCol=(x,y)=>{ const k=hash(Math.floor(x/42),Math.floor(y/28)); return k<.5?[.27,.46,.13]:k<.75?[.44,.52,.16]:k<.88?[.45,.33,.19]:[.22,.39,.11]; };
 {
-  const ground=new THREE.Mesh(new THREE.CircleGeometry(1400,64),M.ground);
-  ground.rotation.x=-Math.PI/2; ground.position.y=-0.05; ground.receiveShadow=true; scene.add(ground);
-  const pts=[];
-  for(const f of FACT){ for(const [u,v] of [[0,0],[L,0],[L,W],[0,W]]) pts.push(new THREE.Vector3(u,0,v).applyMatrix4(f.g.matrix)); }
-  for(const [u,v] of [[-3,0],[23,0],[23,11],[-3,11]]) pts.push(new THREE.Vector3(u,0,v).applyMatrix4(ANNEX.g.matrix));
-  const P2=pts.map(p=>[p.x,p.z]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
-  const cross=(o,a,b)=>(a[0]-o[0])*(b[1]-o[1])-(a[1]-o[1])*(b[0]-o[0]);
-  const lo=[],up=[]; for(const p of P2){while(lo.length>=2&&cross(lo.at(-2),lo.at(-1),p)<=0)lo.pop();lo.push(p);}
-  for(const p of [...P2].reverse()){while(up.length>=2&&cross(up.at(-2),up.at(-1),p)<=0)up.pop();up.push(p);}
-  const hull=lo.slice(0,-1).concat(up.slice(0,-1));
-  const cx=hull.reduce((s,p)=>s+p[0],0)/hull.length, cz=hull.reduce((s,p)=>s+p[1],0)/hull.length;
-  const shape=new THREE.Shape(); hull.forEach(([x,z],i)=>{ const dx=x-cx,dz=z-cz,l=Math.hypot(dx,dz),k=(l+12)/l; const X=cx+dx*k, Y=-(cz+dz*k); i?shape.lineTo(X,Y):shape.moveTo(X,Y); });
-  const pad=new THREE.Mesh(new THREE.ShapeGeometry(shape),M.pad); pad.rotation.x=-Math.PI/2; pad.position.y=0; pad.receiveShadow=true; scene.add(pad);
-  window.__siteCenter=new THREE.Vector3(cx,0,cz);
+  const G=new THREE.PlaneGeometry(3200,3200,300,300); G.rotateX(-Math.PI/2);
+  const P=G.attributes.position, col=new Float32Array(P.count*3), cx=SITEC[0], cy=SITEC[1];
+  for(let i=0;i<P.count;i++){ const x=P.getX(i)+cx, y=-(P.getZ(i))+cy, h=terrainH(x,y); P.setXYZ(i,x,h,-y);
+    const d=frameDist(x,y); let c;
+    const n=fbm(x*.02,y*.02);
+    if(d<=0) c=[.36+.06*n,.50+.07*n,.22]; else if(y<FY0 && d<480) c=farmCol(x,y); else c=[.17+.09*n,.29+.11*n,.12+.05*n];
+    col.set(c,i*3); }
+  G.setAttribute('color',new THREE.BufferAttribute(col,3)); G.computeVertexNormals();
+  const ground=new THREE.Mesh(G,new THREE.MeshStandardMaterial({vertexColors:true,roughness:1})); ground.receiveShadow=true; scene.add(ground);
+}
+const paddyTex=canvasTex((g,w,h)=>{ g.fillStyle='#ffffff'; g.fillRect(0,0,w,h); g.fillStyle='#e3ecd2'; for(let i=0;i<w;i+=16) g.fillRect(i,0,5,h); g.fillStyle='#c9d6b8'; g.fillRect(0,0,w,3); g.fillRect(0,0,3,h); });
+paddyTex.repeat.set(.05,.05);
+const fieldTex=canvasTex((g,w,h)=>{ g.fillStyle='#ffffff'; g.fillRect(0,0,w,h); g.fillStyle='#d9ccb5'; for(let i=0;i<w;i+=22) g.fillRect(i,0,9,h); });
+fieldTex.repeat.set(.07,.07);
+const LU={'장':[0xb3b4ae,.03],'답':[0x79a03c,.02,paddyTex],'전':[0x8a7248,.02,fieldTex],'임':[0x3f6230,.02],'묘':[0x7a9a4e,.02]};
+CTX.parcels.forEach(p=>{ const t=LU[p.jm]||LU['묘']; flat(p,t[0],t[1],t[2]); });
+CTX.voids.forEach(p=>flat(p,0x7f9a52,.012));
+CTX.roads.forEach(p=>flat(p,0x55595d,.03));
+flat({o:CTX.site,h:[]},0xcdcdc7,.05).material=M.pad;
+CTX.band.forEach(p=>flat(p,0x5f8a3c,.035));
+// existing neighbouring buildings (측량-건물)
+for(const b of CTX.bldg){ const sh=new THREE.Shape(b.map(p=>new THREE.Vector2(p[0],p[1])));
+  const m=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,{depth:8,bevelEnabled:false}),[new THREE.MeshStandardMaterial({color:0x9fb3c4,roughness:.6,metalness:.2}),new THREE.MeshStandardMaterial({color:0xd8d9d6,roughness:.8})]);
+  m.rotation.x=-Math.PI/2; m.castShadow=m.receiveShadow=true; scene.add(m); }
+// green mesh fence along the site boundary
+{ const fm=new THREE.MeshStandardMaterial({color:0x2f7a3e,transparent:true,opacity:.45,side:THREE.DoubleSide,depthWrite:false}), pm=new THREE.MeshStandardMaterial({color:0x2c5f33});
+  const pts=CTX.site; for(let i=1;i<pts.length;i++){ const [x0,y0]=pts[i-1],[x1,y1]=pts[i], len=Math.hypot(x1-x0,y1-y0); if(len<.5) continue;
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(len,1.8),fm); m.position.set((x0+x1)/2,.95,-(y0+y1)/2); m.rotation.y=Math.atan2(y1-y0,x1-x0); scene.add(m);
+    const r=new THREE.Mesh(new THREE.BoxGeometry(len,.06,.06),pm); r.position.set((x0+x1)/2,1.85,-(y0+y1)/2); r.rotation.y=m.rotation.y; scene.add(r); } }
+// trees: forest hills, 임야 parcels, 완충녹지
+{
+  const near=[],far=[], cx=SITEC[0], cy=SITEC[1];
+  const blocked=(x,y)=>{ if(inPoly(x,y,CTX.site)) return true; for(const v of CTX.roads) if(inPoly(x,y,v.o)) return true; for(const b of CTX.bldg) if(inPoly(x,y,b)) return true;
+    for(const p of CTX.parcels) if(p.jm!=='임'&&inPoly(x,y,p.o)) return true; return false; };
+  const plant=(x,y,s)=>{ const h=terrainH(x,y); (Math.hypot(x-cx,y-cy)<330?near:far).push([x,h,y,s]); };
+  const R=SMALL?560:760, step=SMALL?11:8.5;
+  for(let x=cx-R;x<cx+R;x+=step) for(let y=cy-R;y<cy+R;y+=step){ const jx=x+(rnd()-.5)*step*.9, jy=y+(rnd()-.5)*step*.9;
+    if(Math.hypot(jx-cx,jy-cy)>R) continue; const d=frameDist(jx,jy), n=fbm(jx*.012,jy*.012);
+    if(d>0){ if(jy<FY0 && d<480){ const hedge=(Math.abs(((jx%42)+42)%42)<3||Math.abs(((jy%28)+28)%28)<2.5)&&rnd()<.25; if(hedge||rnd()<.01) plant(jx,jy,.7+rnd()*.5); continue; }
+      if(d+(n-.5)*90>-12 && rnd()<.94) plant(jx,jy,.9+rnd()*.8); continue; }
+    if(blocked(jx,jy)) continue;
+    const inForest=CTX.parcels.some(p=>p.jm==='임'&&inPoly(jx,jy,p.o)), inBand=CTX.band.some(b=>inPoly(jx,jy,b.o)), inVoid=CTX.voids.some(v=>inPoly(jx,jy,v.o));
+    if((inForest&&rnd()<.9)||(inBand&&rnd()<.6)||(inVoid&&(n>.42||frameDist(jx,jy)>-25)&&rnd()<.75)) plant(jx,jy,.75+rnd()*.6); }
+  const canopyG=new THREE.IcosahedronGeometry(1,1), canopyFar=new THREE.IcosahedronGeometry(1,0), trunkG=new THREE.CylinderGeometry(.18,.25,1,6);
+  const cm=new THREE.MeshStandardMaterial({roughness:.95,flatShading:true}), tm=new THREE.MeshStandardMaterial({color:0x5a4632,roughness:1});
+  const make=(list,shadow,geo)=>{ if(!list.length) return; const C=new THREE.InstancedMesh(geo,cm,list.length), T=new THREE.InstancedMesh(trunkG,tm,list.length);
+    const m=new THREE.Matrix4(), q=new THREE.Quaternion(), col=new THREE.Color();
+    list.forEach(([x,h,y,s],i)=>{ const r=3.2*s, ht=4.5*s; m.compose(new THREE.Vector3(x,h+ht*.45+r*.85,-y),q.setFromAxisAngle(new THREE.Vector3(0,1,0),rnd()*6),new THREE.Vector3(r,r*1.25,r)); C.setMatrixAt(i,m);
+      m.compose(new THREE.Vector3(x,h+ht*.3,-y),q.identity(),new THREE.Vector3(1,ht*.6,1)); T.setMatrixAt(i,m);
+      const g=rnd(); col.setRGB(.10+g*.12,.26+g*.15,.08+g*.06); C.setColorAt(i,col); });
+    C.castShadow=shadow; C.receiveShadow=true; T.castShadow=shadow; scene.add(C); scene.add(T); };
+  make(near,true,canopyG); make(far,false,canopyFar);
+}
+// parked cars (주차 24대 계획 중 배치도 위치) and two trucks at the hanger-door yard
+{ const cols=[0xf2f2f0,0x2b2f33,0xb7bcc1,0xf2f2f0,0x7d2a2a,0x2f4f7a,0xd9d9d6,0x3a3f44];
+  const car=(x,y,a,c)=>{ const g=new THREE.Group(); g.position.set(x,0,-y); g.rotation.y=a; scene.add(g);
+    box(4.6,.75,1.85,new THREE.MeshStandardMaterial({color:c,roughness:.35,metalness:.5}),0,.55,0,g); box(2.6,.6,1.65,new THREE.MeshStandardMaterial({color:0x2a3238,roughness:.2,metalness:.6}),-.2,1.2,0,g); };
+  [[13.6,77.3,0],[13.6,74.7,0],[13.6,72.2,0],[13.6,69.5,0],[13.6,67.0,0],[13.6,64.4,0],[76.4,41.4,.373],[77.4,38.7,.373],[78.3,36.3,.373],[79.4,33.8,.373],[80.4,31.1,.373],[81.3,28.6,.373],[82.3,26.0,.373],[83.3,23.5,.373],[84.2,21.4,.373],[63.8,43.0,-.362],[62.8,40.5,-.362],[61.9,38.0,-.362]]
+    .forEach(([x,y,a],i)=>{ if(i%5!==3) car(x,y,a,cols[i%cols.length]); });
+  const truck=(f,u)=>{ const g=new THREE.Group(); g.matrixAutoUpdate=false; const loc=new THREE.Matrix4().makeTranslation(u,0,-7); g.matrix.copy(f.g.matrix).multiply(loc); scene.add(g);
+    box(13.6,2.9,2.5,new THREE.MeshStandardMaterial({color:0xf4f4f2,roughness:.6}),0,2.45,0,g); box(2.4,2.8,2.45,new THREE.MeshStandardMaterial({color:0x2f6fb5,roughness:.4,metalness:.4}),8.0,1.95,0,g);
+    box(16,.6,2.4,M.hook,1,.6,0,g,false); };
+  truck(FACT[0],50); truck(FACT[1],90);
 }
 const C=window.__siteCenter;
 sun.target.position.copy(C); sun.position.copy(C).add(new THREE.Vector3(-90,160,110));
