@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>피알테크 공장 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: full-bleed 3D viewport, one floating spec sheet (top-left) styled like a drawing title block, view chips along the bottom. */
+:root{
+  --bg:#E6EAEC; --panel:rgba(249,250,250,.93); --fg:#1B2225; --muted:#5A666B; --line:#C9D1D4;
+  --accent:#C98A06; --accent-ink:#1B2225; --chip:#FFFFFF;
+  --sky:#D9E2E6; --ground:#B4B9AE; --pad:#8F9598; --wall:#EEF0EF; --roof:#5C6B78; --steel:#7E8A92;
+  --font-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11161A; --panel:rgba(22,28,32,.92); --fg:#E4EAEC; --muted:#97A3A8; --line:#2E393E;
+  --accent:#F0B429; --accent-ink:#11161A; --chip:#1C2428;
+  --sky:#1A232A; --ground:#2B302C; --pad:#3B4144; --wall:#C9CECD; --roof:#46525C; --steel:#6F7B83; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11161A; --panel:rgba(22,28,32,.92); --fg:#E4EAEC; --muted:#97A3A8; --line:#2E393E;
+  --accent:#F0B429; --accent-ink:#11161A; --chip:#1C2428;
+  --sky:#1A232A; --ground:#2B302C; --pad:#3B4144; --wall:#C9CECD; --roof:#46525C; --steel:#6F7B83; color-scheme:dark}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);overflow:hidden;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+#stage{position:fixed;inset:0}
+#stage canvas{display:block;width:100%;height:100%;touch-action:none}
+#labels{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+.lbl{position:absolute;transform:translate(-50%,-100%);font-size:12px;font-weight:600;white-space:nowrap;
+  padding:3px 8px;border-radius:3px;background:var(--panel);border:1px solid var(--line);color:var(--fg)}
+.lbl.crane{font-family:var(--font-mono);font-weight:500;font-size:11px;padding:1px 6px;border-color:var(--accent)}
+.panel{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:max(12px,env(safe-area-inset-left,0px));
+  width:min(330px,calc(100% - 24px));max-height:calc(100% - 120px);overflow:auto;
+  background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.tb-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:12px 14px 10px;border-bottom:1px solid var(--line)}
+.tb-head h1{margin:0;font-size:17px;font-weight:700;letter-spacing:-.01em;text-wrap:balance}
+.tb-head .dwg{font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:.06em}
+summary{list-style:none;cursor:pointer}
+summary::-webkit-details-marker{display:none}
+.toggle-ico{font-family:var(--font-mono);font-size:11px;color:var(--muted)}
+details[open] .toggle-ico::after{content:"접기"} details:not([open]) .toggle-ico::after{content:"펼치기"}
+.site{padding:8px 14px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--line);line-height:1.5}
+dl{margin:0;display:grid;grid-template-columns:auto 1fr}
+dl>div{display:contents}
+dt,dd{padding:7px 14px;border-bottom:1px solid var(--line);font-size:12.5px;margin:0}
+dt{color:var(--muted);border-right:1px solid var(--line);white-space:nowrap;font-size:11.5px;letter-spacing:.02em}
+dd{font-variant-numeric:tabular-nums;line-height:1.45}
+.num{font-family:var(--font-mono);font-size:12px}
+.ctrls{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;padding:10px 14px}
+.ctrls label{display:flex;gap:7px;align-items:center;font-size:12.5px;cursor:pointer}
+.ctrls input{accent-color:var(--accent);width:15px;height:15px;margin:0}
+.note{padding:9px 14px 12px;font-size:11px;color:var(--muted);line-height:1.55;border-top:1px solid var(--line)}
+.views{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));
+  display:flex;gap:6px;flex-wrap:wrap;justify-content:center;width:max-content;max-width:calc(100% - 24px)}
+.views button{font:500 12.5px var(--font-body);color:var(--fg);background:var(--chip);border:1px solid var(--line);
+  padding:8px 13px;border-radius:999px;cursor:pointer}
+.views button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.views button:focus-visible,.ctrls input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{position:fixed;right:max(14px,env(safe-area-inset-right,0px));bottom:calc(64px + env(safe-area-inset-bottom,0px));
+  font-size:11px;color:var(--muted);text-align:right;line-height:1.5}
+@media (max-width:640px){
+  .panel{max-height:calc(100% - 140px)}
+  .hint{display:none}
+}
+</style>
+</head>
+<body>
+
+
+<div id="stage"></div>
+<div id="labels"></div>
+
+<details class="panel" id="panel" open>
+  <summary class="tb-head"><h1>(주)피알테크 공장 신축공사</h1><span class="toggle-ico"></span></summary>
+  <div class="site">전남 장성군 삼서면 두월리 916-1 일원 · 공장 3D 모델<br><span class="num">건물배치도 S 1/1000 · 평면·입면·단면 기준</span></div>
+  <dl>
+    <div><dt>주동 (2개 동)</dt><dd><span class="num">150.0 × 25.0 m</span> · 동당 <span class="num">3,750 m²</span><br>X1–X31 @5 m, Y1–Y6 @5 m</dd></div>
+    <div><dt>높이</dt><dd>처마 <span class="num">11.0</span> / 최고 <span class="num">13.6 m</span><br>X1–X4 구간 처마 <span class="num">15.0</span> / 최고 <span class="num">17.6 m</span></dd></div>
+    <div><dt>외장</dt><dd>T125 내화판넬 벽체, T225 내화판넬 지붕, 박공지붕</dd></div>
+    <div><dt>크레인</dt><dd>동당 4대: <span class="num">3t ×2, 2t ×2</span></dd></div>
+    <div><dt>개구부</dt><dd>행가도어 <span class="num">5.0 × 5.0 m</span> 2개소, 하이샤시 창호 2단</dd></div>
+    <div><dt>부1동</dt><dd><span class="num">23.0 × 11.0 m</span>, 지상 3층<br>식당·접견실 / 사무실 / 회의실·기숙사</dd></div>
+  </dl>
+  <div class="ctrls">
+    <label><input type="checkbox" id="tRoof" checked>지붕</label>
+    <label><input type="checkbox" id="tGlass">외벽 반투명</label>
+    <label><input type="checkbox" id="tCrane" checked>크레인</label>
+    <label><input type="checkbox" id="tLabel" checked>라벨</label>
+  </div>
+  <p class="note">주1동·주2동은 배치도에 동 번호가 없어 북측·남측으로 표시했습니다. 부1동은 입면도가 없어 층고 3.6 m를 가정했습니다. 기초·토목·주차장은 생략했습니다.</p>
+</details>
+
+<div class="views" role="group" aria-label="시점">
+  <button type="button" data-view="aerial" aria-pressed="true">전체 조감</button>
+  <button type="button" data-view="front">행가도어 마당</button>
+  <button type="button" data-view="inside">내부·크레인</button>
+  <button type="button" data-view="annex">부1동</button>
+</div>
+<div class="hint">드래그 회전 · 우클릭/두 손가락 이동 · 휠 확대</div>
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+/* ---------- drawing data (mm, CAD model space of the 건물배치도) ---------- */
+const O = {x:460000, y:640000};
+const P = (X,Y) => new THREE.Vector3((X-O.x)/1000, 0, -(Y-O.y)/1000);
+const FACT = [
+  {name:'주동 (북측)', p0:[395472,679721], pu:[535724,626530], pv:[404338,703097]},
+  {name:'주동 (남측)', p0:[528263,610108], pu:[388011,663300], pv:[519398,586733]},
+];
+const ANNEX = {name:'부1동', p0:[494319,684091], dir:[21199,-8896]};
+const L=150, W=25, TALL=15;
+const EAVE=11.0, RIDGE=13.6, EAVE_T=15.0, RIDGE_T=17.6;
+const WIN_U=[7.55,17.55,27.55,47.55,57.55,67.55,82.55,92.55,112.55,122.55,132.55,142.55];
+const WIN_U_UP=[...WIN_U,37.55,102.55];
+const DOOR_U=[37.55,102.55];
+const CRANES=[{u:18.4,t:'3t'},{u:42.6,t:'2t'},{u:107.6,t:'3t'},{u:128.0,t:'2t'}];
+
+/* ---------- theme ---------- */
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- renderer / scene ---------- */
+const stage = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+stage.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(42, 1, 0.5, 4000);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.maxPolarAngle = Math.PI*0.495; controls.minDistance = 4; controls.maxDistance = 900;
+
+const hemi = new THREE.HemisphereLight(0xffffff, 0x8a8a80, 1.15); scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xfff4e2, 2.1);
+sun.position.set(-90,160,110); sun.castShadow = true;
+sun.shadow.mapSize.set(4096,4096);
+Object.assign(sun.shadow.camera,{left:-170,right:170,top:170,bottom:-170,near:10,far:500});
+sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.04;
+scene.add(sun); scene.add(sun.target);
+
+/* ---------- textures ---------- */
+function canvasTex(draw, w=256, h=256){
+  const c=document.createElement('canvas'); c.width=w; c.height=h; draw(c.getContext('2d'),w,h);
+  const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8; return t;
+}
+const panelTex = canvasTex((g,w,h)=>{ g.fillStyle='#ffffff'; g.fillRect(0,0,w,h);
+  g.fillStyle='#d4d8d8'; g.fillRect(0,0,w,5); g.fillStyle='#f2f3f3'; g.fillRect(0,5,w,6);
+  for(let i=1;i<4;i++){g.fillStyle='#eceeee'; g.fillRect(0,i*h/4,w,2);} });
+const roofTex = canvasTex((g,w,h)=>{ g.fillStyle='#ffffff'; g.fillRect(0,0,w,h);
+  g.fillStyle='#c3c7ca'; g.fillRect(0,0,10,h); g.fillStyle='#e9ebec'; g.fillRect(10,0,6,h); });
+const doorTex = canvasTex((g,w,h)=>{ g.fillStyle='#ffffff'; g.fillRect(0,0,w,h);
+  for(let x=0;x<w;x+=32){g.fillStyle='#b9bdbf'; g.fillRect(x,0,4,h);} g.fillStyle='#9fa4a6'; g.fillRect(0,h/2-2,w,4); });
+
+/* ---------- materials ---------- */
+const M = {
+  wall:new THREE.MeshStandardMaterial({map:panelTex,roughness:.75,metalness:.05,side:THREE.DoubleSide}),
+  roof:new THREE.MeshStandardMaterial({map:roofTex,roughness:.55,metalness:.35,side:THREE.DoubleSide}),
+  glass:new THREE.MeshStandardMaterial({color:0x2c3e4a,roughness:.15,metalness:.6}),
+  frame:new THREE.MeshStandardMaterial({color:0xa8b0b4,roughness:.5,metalness:.5}),
+  door:new THREE.MeshStandardMaterial({map:doorTex,color:0x6f7a80,roughness:.6,metalness:.4}),
+  steel:new THREE.MeshStandardMaterial({roughness:.6,metalness:.4}),
+  slab:new THREE.MeshStandardMaterial({color:0xb7b6ae,roughness:.95}),
+  crane:new THREE.MeshStandardMaterial({color:0xe2a20b,roughness:.5,metalness:.3}),
+  hook:new THREE.MeshStandardMaterial({color:0x2a2f33,roughness:.5,metalness:.6}),
+  ground:new THREE.MeshStandardMaterial({roughness:1}),
+  pad:new THREE.MeshStandardMaterial({roughness:.95}),
+  annex:new THREE.MeshStandardMaterial({color:0xe9e7e2,roughness:.8}),
+  band:new THREE.MeshStandardMaterial({color:0x3b4247,roughness:.6,metalness:.2}),
+};
+const wallMats=[M.wall,M.roof];
+
+function applyTheme(){
+  scene.background = new THREE.Color(css('--sky'));
+  scene.fog = new THREE.Fog(css('--sky'), 380, 1500);
+  M.ground.color.set(css('--ground')); M.pad.color.set(css('--pad'));
+  M.wall.color.set(css('--wall')); M.roof.color.set(css('--roof')); M.steel.color.set(css('--steel'));
+  M.crane.color.set(css('--accent'));
+}
+
+/* ---------- helpers ---------- */
+function box(w,h,d,mat,x,y,z,parent,shadow=true){
+  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat); m.position.set(x,y,z);
+  m.castShadow=shadow; m.receiveShadow=true; parent.add(m); return m;
+}
+function texRepeat(mat,rx,ry){ const m=mat.clone(); m.map=mat.map.clone(); m.map.needsUpdate=true; m.map.repeat.set(rx,ry); return m; }
+// shape in (z,y) plane, extruded along x by thickness t, placed at x0
+function gable(pts,t,x0,mat,parent){
+  const s=new THREE.Shape(); pts.forEach(([z,y],i)=>i?s.lineTo(z,y):s.moveTo(z,y));
+  const g=new THREE.ExtrudeGeometry(s,{depth:t,bevelEnabled:false}); g.rotateY(-Math.PI/2);
+  const m=new THREE.Mesh(g,mat); m.position.x=x0+t; m.castShadow=m.receiveShadow=true; parent.add(m); return m;
+}
+// roof plane: x from x0..x1, sloping from (zA,yA) to (zB,yB)
+function roofPlane(x0,x1,zA,yA,zB,yB,parent){
+  const dz=zB-zA, dy=yB-yA, len=Math.hypot(dz,dy), phi=Math.atan2(dy,dz);
+  const mat=texRepeat(M.roof,(x1-x0)/0.6,1);
+  const m=box(x1-x0,0.22,len,mat,(x0+x1)/2,(yA+yB)/2+0.11,(zA+zB)/2,parent);
+  m.rotation.x=-phi; roofs.push(m); return m;
+}
+
+const roofs=[], walls=[], cranes=[], labels=[];
+const world=new THREE.Group(); scene.add(world);
+
+/* ---------- factory ---------- */
+function buildFactory(f){
+  const g=new THREE.Group();
+  const o=P(...f.p0), U=P(...f.pu).sub(o).divideScalar(L), V=P(...f.pv).sub(o).divideScalar(W);
+  g.matrixAutoUpdate=false;
+  g.matrix.makeBasis(U, new THREE.Vector3(0,1,0), V).setPosition(o);
+  world.add(g);
+  const t=0.15;
+
+  box(L,0.2,W,M.slab,L/2,0.1,W/2,g,false);
+
+  // long walls (v=0 is Y1 side with hanger doors, v=25 is Y6 side)
+  for(const z of [t/2, W-t/2]){
+    walls.push(box(TALL,EAVE_T,t,texRepeat(M.wall,TALL,EAVE_T),TALL/2,EAVE_T/2,z,g));
+    walls.push(box(L-TALL,EAVE,t,texRepeat(M.wall,L-TALL,EAVE),(L+TALL)/2,EAVE/2,z,g));
+  }
+  // gable ends + step wall at X4
+  walls.push(gable([[0,0],[W,0],[W,EAVE_T],[W/2,RIDGE_T],[0,EAVE_T]],t,0,M.wall,g));
+  walls.push(gable([[0,0],[W,0],[W,EAVE],[W/2,RIDGE],[0,EAVE]],t,L-t,M.wall,g));
+  walls.push(gable([[0,EAVE],[W/2,RIDGE],[W,EAVE],[W,EAVE_T],[W/2,RIDGE_T],[0,EAVE_T]],t,TALL-t,M.wall,g));
+
+  // roofs (0.4 m eave overhang, 0.3 m at gables)
+  const oh=0.4, slope=(RIDGE-EAVE)/(W/2), slopeT=(RIDGE_T-EAVE_T)/(W/2);
+  roofPlane(-0.3,TALL,-oh,EAVE_T-oh*slopeT,W/2,RIDGE_T,g);
+  roofPlane(-0.3,TALL,W+oh,EAVE_T-oh*slopeT,W/2,RIDGE_T,g);
+  roofPlane(TALL,L+0.3,-oh,EAVE-oh*slope,W/2,RIDGE,g);
+  roofPlane(TALL,L+0.3,W+oh,EAVE-oh*slope,W/2,RIDGE,g);
+  roofs.push(box(TALL+0.3,0.3,0.6,M.frame,TALL/2-0.15,RIDGE_T+0.3,W/2,g));
+  roofs.push(box(L-TALL+0.3,0.3,0.6,M.frame,(L+TALL)/2+0.15,RIDGE+0.3,W/2,g));
+
+  // windows: 3.0 × 0.94 m, sills at 1.03 m and 8.03 m (정면도)
+  const win=(u,y,z,rot)=>{ const w=box(3.0,0.94,0.06,M.glass,u,y,z,g,false); const fr=box(3.12,1.06,0.04,M.frame,u,y,z+(z<1?0.012:-0.012),g,false);
+    if(rot){w.rotation.y=fr.rotation.y=Math.PI/2;} };
+  for(const z of [-0.035, W+0.035]){
+    WIN_U.forEach(u=>win(u,1.5,z));
+    WIN_U_UP.forEach(u=>win(u,8.5,z));
+  }
+  for(const x of [-0.035, L+0.035]) for(const v of [7.5,17.5]) for(const y of [1.5,8.5]){
+    const w=box(0.06,0.94,3.0,M.glass,x,y,v,g,false); box(0.04,1.06,3.12,M.frame,x+(x<1?0.012:-0.012),y,v,g,false);
+  }
+  // hanger doors 5.0 × 5.0 on Y1 side with 10 m sliding rail
+  for(const u of DOOR_U){
+    box(5.0,5.0,0.14,texRepeat(M.door,5/0.9,1),u-1.25,2.5,-0.09,g);
+    box(5.0,5.0,0.14,texRepeat(M.door,5/0.9,1),u+1.25,2.5,-0.2,g);
+    box(10.0,0.28,0.32,M.steel,u,5.2,-0.2,g);
+    box(7.0,0.12,1.6,M.frame,u,5.6,-0.8,g);
+  }
+  // steel swing doors on Y6 side (철재 여닫이문)
+  for(const u of [24.4,125.8]){ box(1.8,2.1,0.1,M.door,u,1.05,W+0.06,g); box(2.6,0.1,1.2,M.frame,u,2.5,W+0.6,g); }
+
+  // steel frame: columns every 5 m, rafters
+  for(let k=0;k<=30;k++){
+    const u=Math.min(Math.max(k*5,0.25),L-0.25), e=u<=TALL+0.01?EAVE_T:EAVE, r=u<=TALL+0.01?RIDGE_T:RIDGE;
+    for(const z of [0.45,W-0.45]) box(0.35,e,0.35,M.steel,u,e/2,z,g);
+    for(const [zA,zB] of [[0.45,W/2],[W-0.45,W/2]]){
+      const dz=zB-zA, dy=(r-0.5)-(e-0.3), len=Math.hypot(dz,dy);
+      const m=box(0.25,0.55,len,M.steel,u,((e-0.3)+(r-0.5))/2,(zA+zB)/2,g); m.rotation.x=-Math.atan2(dy,dz);
+    }
+  }
+  // crane runway girders and bridge cranes
+  const run=new THREE.Group(); g.add(run); cranes.push(run);
+  for(const z of [0.95,W-0.95]) box(L-1,0.6,0.35,M.steel,L/2,8.4,z,run);
+  for(const c of CRANES){
+    box(0.8,1.0,W-1.6,M.crane,c.u,9.2,W/2,run);
+    for(const z of [0.95,W-0.95]) box(2.6,0.55,0.6,M.crane,c.u,8.95,z,run);
+    const hz=c.t==='3t'?W*0.42:W*0.6;
+    box(1.4,0.9,1.5,M.hook,c.u,8.3,hz,run);
+    box(0.05,3.6,0.05,M.hook,c.u,6.05,hz,run,false);
+    box(0.35,0.5,0.35,M.hook,c.u,4.0,hz,run);
+    labels.push({el:mk('lbl crane',`CRANE ${c.t}`),pos:()=>new THREE.Vector3(c.u,10.4,W/2).applyMatrix4(g.matrix),grp:'crane'});
+  }
+  labels.push({el:mk('lbl',f.name),pos:()=>new THREE.Vector3(L/2,RIDGE+4,W/2).applyMatrix4(g.matrix),grp:'bld'});
+  labels.push({el:mk('lbl crane','X1'),pos:()=>new THREE.Vector3(0,RIDGE_T+2.5,W/2).applyMatrix4(g.matrix),grp:'crane'});
+  f.g=g; f.center=new THREE.Vector3(L/2,0,W/2).applyMatrix4(g.matrix); f.U=U; f.V=V;
+}
+
+/* ---------- annex 부1동 ---------- */
+function buildAnnex(a){
+  const g=new THREE.Group(); world.add(g);
+  const o=P(...a.p0); const d=new THREE.Vector3(a.dir[0],0,-a.dir[1]).normalize();
+  const Vv=new THREE.Vector3(8896,0,-21199).normalize();
+  g.matrixAutoUpdate=false; g.matrix.makeBasis(d,new THREE.Vector3(0,1,0),Vv).setPosition(o);
+  const LW=23, WW=11, FH=3.6, H=FH*3;
+  box(LW,H,WW,M.annex,LW/2,H/2,WW/2,g);
+  box(LW+0.2,1.0,WW+0.2,M.annex,LW/2,H+0.5,WW/2,g);
+  box(LW+0.3,0.15,WW+0.3,M.band,LW/2,H+1.05,WW/2,g);
+  for(let f=0;f<3;f++){
+    const y=f*FH+1.9;
+    for(const z of [-0.04,WW+0.04]) for(let s=0;s<4;s++){ box(4.6,1.6,0.06,M.glass,2.8+s*5.6,y,z,g,false); }
+    if(f>0) box(LW+0.12,0.25,WW+0.12,M.band,LW/2,f*FH,WW/2,g);
+  }
+  // 방풍실 (entrance vestibule) on X1 side
+  box(2.1,3.3,4.0,M.glass,-1.05,1.65,5.5,g);
+  box(2.4,0.3,4.6,M.band,-1.2,3.45,5.5,g);
+  labels.push({el:mk('lbl',a.name),pos:()=>new THREE.Vector3(LW/2,H+4,WW/2).applyMatrix4(g.matrix),grp:'bld'});
+  a.g=g; a.center=new THREE.Vector3(LW/2,0,WW/2).applyMatrix4(g.matrix); a.U=d; a.V=Vv;
+}
+
+/* ---------- labels ---------- */
+const lblRoot=document.getElementById('labels');
+function mk(cls,text){ const e=document.createElement('div'); e.className=cls; e.textContent=text; lblRoot.appendChild(e); return e; }
+
+FACT.forEach(buildFactory); buildAnnex(ANNEX);
+FACT.forEach(f=>f.inv=f.g.matrix.clone().invert());
+
+/* ---------- ground + paved yard (convex hull of building corners, offset 12 m) ---------- */
+{
+  const ground=new THREE.Mesh(new THREE.CircleGeometry(1400,64),M.ground);
+  ground.rotation.x=-Math.PI/2; ground.position.y=-0.05; ground.receiveShadow=true; scene.add(ground);
+  const pts=[];
+  for(const f of FACT){ for(const [u,v] of [[0,0],[L,0],[L,W],[0,W]]) pts.push(new THREE.Vector3(u,0,v).applyMatrix4(f.g.matrix)); }
+  for(const [u,v] of [[-3,0],[23,0],[23,11],[-3,11]]) pts.push(new THREE.Vector3(u,0,v).applyMatrix4(ANNEX.g.matrix));
+  const P2=pts.map(p=>[p.x,p.z]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
+  const cross=(o,a,b)=>(a[0]-o[0])*(b[1]-o[1])-(a[1]-o[1])*(b[0]-o[0]);
+  const lo=[],up=[]; for(const p of P2){while(lo.length>=2&&cross(lo.at(-2),lo.at(-1),p)<=0)lo.pop();lo.push(p);}
+  for(const p of [...P2].reverse()){while(up.length>=2&&cross(up.at(-2),up.at(-1),p)<=0)up.pop();up.push(p);}
+  const hull=lo.slice(0,-1).concat(up.slice(0,-1));
+  const cx=hull.reduce((s,p)=>s+p[0],0)/hull.length, cz=hull.reduce((s,p)=>s+p[1],0)/hull.length;
+  const shape=new THREE.Shape(); hull.forEach(([x,z],i)=>{ const dx=x-cx,dz=z-cz,l=Math.hypot(dx,dz),k=(l+12)/l; const X=cx+dx*k, Y=-(cz+dz*k); i?shape.lineTo(X,Y):shape.moveTo(X,Y); });
+  const pad=new THREE.Mesh(new THREE.ShapeGeometry(shape),M.pad); pad.rotation.x=-Math.PI/2; pad.position.y=0; pad.receiveShadow=true; scene.add(pad);
+  window.__siteCenter=new THREE.Vector3(cx,0,cz);
+}
+const C=window.__siteCenter;
+sun.target.position.copy(C); sun.position.copy(C).add(new THREE.Vector3(-90,160,110));
+sun.shadow.camera.updateProjectionMatrix();
+
+/* ---------- views ---------- */
+const A=FACT[0];
+const VIEWS={
+  aerial:()=>({pos:C.clone().add(new THREE.Vector3(-150,135,175)),tgt:C.clone().add(new THREE.Vector3(0,4,0))}),
+  front:()=>({pos:new THREE.Vector3(-28,9,-9).applyMatrix4(A.g.matrix),tgt:new THREE.Vector3(70,4,-6).applyMatrix4(A.g.matrix)}),
+  inside:()=>{ const p=new THREE.Vector3(88,3,7).applyMatrix4(A.g.matrix), t=new THREE.Vector3(20,9,14).applyMatrix4(A.g.matrix); return {pos:p,tgt:t}; },
+  annex:()=>({pos:ANNEX.center.clone().addScaledVector(ANNEX.V,40).addScaledVector(ANNEX.U,-28).add(new THREE.Vector3(0,14,0)),tgt:ANNEX.center.clone().add(new THREE.Vector3(0,5,0))}),
+};
+let tween=null;
+function go(name,instant=false){
+  const v=VIEWS[name]();
+  document.querySelectorAll('.views button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===name)));
+  if(instant||reduced){ camera.position.copy(v.pos); controls.target.copy(v.tgt); controls.update(); return; }
+  tween={p0:camera.position.clone(),t0:controls.target.clone(),p1:v.pos,t1:v.tgt,start:performance.now(),dur:1100};
+}
+document.querySelectorAll('.views button').forEach(b=>b.addEventListener('click',()=>go(b.dataset.view)));
+controls.addEventListener('start',()=>{tween=null;});
+
+/* ---------- toggles ---------- */
+const $=id=>document.getElementById(id);
+$('tRoof').addEventListener('change',e=>roofs.forEach(r=>r.visible=e.target.checked));
+$('tCrane').addEventListener('change',e=>{cranes.forEach(c=>c.visible=e.target.checked); labels.filter(l=>l.grp==='crane').forEach(l=>l.hide=!e.target.checked);});
+$('tLabel').addEventListener('change',e=>{lblRoot.hidden=!e.target.checked;});
+$('tGlass').addEventListener('change',e=>{
+  const on=e.target.checked;
+  walls.forEach(w=>{ const m=w.material; m.transparent=on; m.opacity=on?0.22:1; m.depthWrite=!on; m.needsUpdate=true; w.castShadow=!on; });
+});
+if(innerWidth<640) $('panel').open=false;
+
+/* ---------- theme hooks ---------- */
+applyTheme();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',applyTheme);
+new MutationObserver(applyTheme).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+/* ---------- loop ---------- */
+function resize(){ const w=innerWidth,h=innerHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); }
+addEventListener('resize',resize); resize();
+go('aerial',true);
+const tmp=new THREE.Vector3(), ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+renderer.setAnimationLoop(now=>{
+  if(tween){ const k=Math.min(1,(now-tween.start)/tween.dur), e=ease(k);
+    camera.position.lerpVectors(tween.p0,tween.p1,e); controls.target.lerpVectors(tween.t0,tween.t1,e); if(k>=1) tween=null; }
+  controls.update();
+  renderer.render(scene,camera);
+  if(!lblRoot.hidden){ const w=innerWidth,h=innerHeight;
+    const inside=FACT.some(f=>{ const q=camera.position.clone().applyMatrix4(f.inv); return q.x>0&&q.x<L&&q.z>0&&q.z<W&&q.y<RIDGE_T; });
+    for(const l of labels){ tmp.copy(l.pos()); const d=tmp.distanceTo(camera.position); tmp.project(camera);
+      const vis=!l.hide && tmp.z<1 && Math.abs(tmp.x)<1.1 && Math.abs(tmp.y)<1.1 && (l.grp!=='crane'||(d<220&&(inside||!roofs[0].visible)));
+      l.el.hidden=!vis; if(vis){ l.el.style.left=((tmp.x+1)/2*w)+'px'; l.el.style.top=((1-tmp.y)/2*h)+'px'; } } }
+});
+</script>
+
+</body>
+</html>
