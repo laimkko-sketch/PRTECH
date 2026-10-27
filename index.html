@@ -32,6 +32,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--font-body);overflow:
 #labels{position:fixed;inset:0;pointer-events:none;overflow:hidden}
 .lbl{position:absolute;transform:translate(-50%,-100%);font-size:12px;font-weight:600;white-space:nowrap;
   padding:3px 8px;border-radius:3px;background:var(--panel);border:1px solid var(--line);color:var(--fg)}
+.lbl.room{font-weight:500;font-size:11.5px;padding:2px 7px}
 .lbl.crane{font-family:var(--font-mono);font-weight:500;font-size:11px;padding:1px 6px;border-color:var(--accent)}
 .panel{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:max(12px,env(safe-area-inset-left,0px));
   width:min(330px,calc(100% - 24px));max-height:calc(100% - 120px);overflow:auto;
@@ -60,10 +61,18 @@ dd{font-variant-numeric:tabular-nums;line-height:1.45}
   padding:8px 13px;border-radius:999px;cursor:pointer}
 .views button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .views button:focus-visible,.ctrls input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.floorbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(62px + env(safe-area-inset-bottom,0px));
+  display:flex;gap:4px;align-items:center;flex-wrap:wrap;justify-content:center;background:var(--panel);border:1px solid var(--line);padding:5px;border-radius:999px;max-width:calc(100% - 24px)}
+.floorbar span{font-size:12px;font-weight:600;padding:0 8px 0 10px}
+.floorbar button{font:500 12.5px var(--font-body);color:var(--fg);background:transparent;border:1px solid transparent;padding:6px 12px;border-radius:999px;cursor:pointer}
+.floorbar button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.floorbar #exitIn{border-color:var(--line)}
+.floorbar button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .hint{position:fixed;right:max(14px,env(safe-area-inset-right,0px));bottom:calc(64px + env(safe-area-inset-bottom,0px));
   font-size:11px;color:var(--muted);text-align:right;line-height:1.5}
 @media (max-width:640px){
-  .panel{max-height:calc(100% - 140px)}
+  .panel{max-height:calc(100% - 190px)}
+  .floorbar{bottom:calc(104px + env(safe-area-inset-bottom,0px))}
   .hint{display:none}
 }
 </style>
@@ -83,7 +92,7 @@ dd{font-variant-numeric:tabular-nums;line-height:1.45}
     <div><dt>외장</dt><dd>T125 내화판넬 벽체, T225 내화판넬 지붕, 박공지붕</dd></div>
     <div><dt>크레인</dt><dd>동당 4대: <span class="num">3t ×2, 2t ×2</span></dd></div>
     <div><dt>개구부</dt><dd>행가도어 <span class="num">5.0 × 5.0 m</span> 2개소, 하이샤시 창호 2단</dd></div>
-    <div><dt>부1동</dt><dd><span class="num">23.0 × 11.0 m</span>, 지상 3층<br>식당·접견실 / 사무실 / 회의실·기숙사</dd></div>
+    <div><dt>부1동</dt><dd><span class="num">23.0 × 11.0 m</span>, 지상 3층<br>1층 식당·주방·접견실 / 2층 사무실·휴게실 / 3층 회의실·방 5실·샤워장</dd></div>
   </dl>
   <div class="ctrls">
     <label><input type="checkbox" id="tRoof" checked>지붕</label>
@@ -91,7 +100,7 @@ dd{font-variant-numeric:tabular-nums;line-height:1.45}
     <label><input type="checkbox" id="tCrane" checked>크레인</label>
     <label><input type="checkbox" id="tLabel" checked>라벨</label>
   </div>
-  <p class="note">주1동·주2동은 배치도에 동 번호가 없어 북측·남측으로 표시했습니다. 부1동은 입면도가 없어 층고 3.6 m를 가정했습니다. 기초·토목·주차장은 생략했습니다.</p>
+  <p class="note">주1동·주2동은 배치도에 동 번호가 없어 북측·남측으로 표시했습니다. 부1동은 입면도가 없어 층고 3.6 m를 가정했고, 내부 가구는 실 용도에 맞춰 임의로 배치했습니다. 기초·토목·주차장은 생략했습니다.</p>
 </details>
 
 <div class="views" role="group" aria-label="시점">
@@ -99,8 +108,16 @@ dd{font-variant-numeric:tabular-nums;line-height:1.45}
   <button type="button" data-view="front">행가도어 마당</button>
   <button type="button" data-view="inside">내부·크레인</button>
   <button type="button" data-view="annex">부1동</button>
+  <button type="button" data-view="interior">부1동 내부</button>
 </div>
-<div class="hint">드래그 회전 · 우클릭/두 손가락 이동 · 휠 확대</div>
+<div class="floorbar" id="floorbar" role="group" aria-label="부1동 층 선택" hidden>
+  <span>부1동 내부</span>
+  <button type="button" data-floor="0">1층</button>
+  <button type="button" data-floor="1">2층</button>
+  <button type="button" data-floor="2">3층</button>
+  <button type="button" id="exitIn">외부로</button>
+</div>
+<div class="hint">부1동을 클릭하면 내부를 볼 수 있습니다<br>드래그 회전 · 우클릭/두 손가락 이동 · 휠 확대</div>
 
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
@@ -289,25 +306,216 @@ function buildFactory(f){
 }
 
 /* ---------- annex 부1동 ---------- */
+/* Local frame: u = from X1 (west, 방풍실 side), v = from Y1 (south). Grid X 0/3.8/8.6/13.4/18.2/23.0, Y 0/3.5/7.5/11.0 (평면도 S 1/100). */
+const AW=23, AD=11, FH=3.6, WH=3.0;
+const ann={shell:null, floors:[], mode:'out', cur:0, pick:[]};
+const matCache=new Map();
+function cm(hex,o={}){ const k=hex+JSON.stringify(o); if(!matCache.has(k)) matCache.set(k,new THREE.MeshStandardMaterial({color:hex,roughness:o.r??.75,metalness:o.m??0,transparent:!!o.t,opacity:o.t??1,depthWrite:!o.t})); return matCache.get(k); }
+const COL={wall:0xf2efe9,trim:0x8b949a,wood:0xa77d52,woodL:0xcdb08a,white:0xf6f6f4,steel:0xc3c9cd,dark:0x30363b,chair:0x4a5a6a,chairR:0xb5533c,fabric:0x6c7a72,
+  sofa:0x5d6d7e,bed:0xe8e4dc,blanket:0x7f9bb3,green:0x5f8a4e,pot:0x8a6a50,glass:0x9cc6da,screen:0x1d2226,tileW:0xdfe6e8};
+const FLOOR={tile:0xd8d4cb,stone:0xc8c1b4,wood:0xbf9a6a,carpet:0x8a939c,wet:0xcdd8dc,kitchen:0xd9d2c4,dorm:0xc7a57a};
+function bx(p,w,h,d,hex,x,y,z,ry=0,o){ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),cm(hex,o)); m.position.set(x,y,z); m.rotation.y=ry;
+  m.castShadow=(w*h>0.15||d*h>0.15)&&!o?.t; m.receiveShadow=true; p.add(m); return m; }
+function cyl(p,r,h,hex,x,y,z,o){ const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,16),cm(hex,o)); m.position.set(x,y,z); m.castShadow=true; p.add(m); return m; }
+function grp(p,x,z,ry=0,y=0){ const g=new THREE.Group(); g.position.set(x,y,z); g.rotation.y=ry; p.add(g); return g; }
+const face=(dx,dz)=>Math.atan2(dx,dz);
+
+/* --- furniture (each faces local +z) --- */
+function chair(p,x,z,ry,c=COL.chair){ const g=grp(p,x,z,ry);
+  bx(g,.44,.06,.44,c,0,.46,0); bx(g,.44,.48,.05,c,0,.72,-.2);
+  for(const [a,b] of [[-.19,-.19],[.19,-.19],[-.19,.19],[.19,.19]]) bx(g,.035,.44,.035,COL.dark,a,.22,b); return g; }
+function officeChair(p,x,z,ry){ const g=grp(p,x,z,ry);
+  bx(g,.5,.08,.5,COL.dark,0,.48,0); bx(g,.48,.55,.06,COL.dark,0,.8,-.23); cyl(g,.03,.4,COL.steel,0,.26,0); bx(g,.55,.04,.55,COL.dark,0,.05,0); return g; }
+function table(p,x,z,w,d,c=COL.woodL,h=.74){ const g=grp(p,x,z);
+  bx(g,w,.04,d,c,0,h-.02,0); for(const [a,b] of [[-1,-1],[1,-1],[-1,1],[1,1]]) bx(g,.05,h-.04,.05,COL.dark,a*(w/2-.06),(h-.04)/2,b*(d/2-.06)); return g; }
+function dining(p,u,v,len){ table(p,u,v,.8,len,COL.woodL);
+  const n=Math.max(1,Math.floor(len/.55)); for(let i=0;i<n;i++){ const z=v-len/2+len*(i+.5)/n; chair(p,u-.62,z,face(1,0),COL.chairR); chair(p,u+.62,z,face(-1,0),COL.chairR); } }
+function desk(p,x,z,ry,mon=true){ const g=grp(p,x,z,ry);
+  bx(g,1.4,.04,.7,COL.woodL,0,.73,0); bx(g,.04,.71,.66,COL.white,-.68,.36,0); bx(g,.04,.71,.66,COL.white,.68,.36,0); bx(g,1.3,.4,.02,COL.white,0,.5,-.33);
+  if(mon){ bx(g,.6,.36,.03,COL.screen,0,1.02,-.2); bx(g,.05,.2,.05,COL.dark,0,.83,-.22); bx(g,.45,.02,.15,COL.dark,0,.76,.05); }
+  officeChair(g,0,.62,Math.PI); return g; }
+function armchair(p,x,z,ry,c=COL.sofa){ const g=grp(p,x,z,ry);
+  bx(g,.8,.42,.8,c,0,.21,0); bx(g,.8,.42,.16,c,0,.6,-.32); bx(g,.14,.24,.8,c,-.33,.5,0); bx(g,.14,.24,.8,c,.33,.5,0); return g; }
+function sofa(p,x,z,len,ry,c=COL.sofa){ const g=grp(p,x,z,ry);
+  bx(g,len,.42,.85,c,0,.21,0); bx(g,len,.45,.18,c,0,.62,-.34); bx(g,.16,.25,.85,c,-len/2+.08,.5,0); bx(g,.16,.25,.85,c,len/2-.08,.5,0); return g; }
+function plant(p,x,z,s=1){ cyl(p,.18*s,.4*s,COL.pot,x,.2*s,z); const m=new THREE.Mesh(new THREE.IcosahedronGeometry(.38*s,1),cm(COL.green,{r:.9})); m.position.set(x,.75*s,z); m.castShadow=true; p.add(m); }
+function bed(p,x,z,ry){ const g=grp(p,x,z,ry);
+  bx(g,1.0,.3,2.0,COL.wood,0,.15,0); bx(g,.96,.18,1.94,COL.bed,0,.39,0); bx(g,.96,.06,1.2,COL.blanket,0,.5,.35); bx(g,.6,.12,.35,COL.white,0,.54,-.7); bx(g,1.04,.9,.06,COL.wood,0,.45,-1.0); return g; }
+function wardrobe(p,x,z,w,ry){ const g=grp(p,x,z,ry); bx(g,w,2.1,.6,COL.woodL,0,1.05,0); bx(g,.02,1.9,.01,COL.dark,0,1.05,.305); return g; }
+function shelf(p,x,z,w,ry,h=1.8){ const g=grp(p,x,z,ry); bx(g,w,h,.4,COL.white,0,h/2,0);
+  for(let i=1;i<4;i++) bx(g,w-.04,.03,.36,COL.trim,0,h*i/4,.0); for(let i=0;i<5;i++) bx(g,.08,.28,.24,[0x7a4b3a,0x3f5f7a,0xb89a4a,0x5b6b4a][i%4],-w/2+.2+i*.17,h*.25+.16,.02); return g; }
+function wc(p,x,z,ry){ const g=grp(p,x,z,ry); bx(g,.38,.4,.55,COL.white,0,.2,.05,0,{r:.3}); bx(g,.4,.42,.18,COL.white,0,.55,-.2,0,{r:.3}); bx(g,.38,.03,.5,COL.white,0,.42,.07,0,{r:.3}); return g; }
+function urinal(p,x,z,ry){ const g=grp(p,x,z,ry); bx(g,.36,.6,.3,COL.white,0,.85,0,0,{r:.3}); return g; }
+function vanity(p,x,z,w,ry,n=2){ const g=grp(p,x,z,ry); bx(g,w,.08,.55,COL.tileW,0,.82,0,0,{r:.4});
+  for(let i=0;i<n;i++){ const xx=-w/2+w*(i+.5)/n; cyl(g,.18,.05,COL.white,xx,.86,0); bx(g,.04,.18,.04,COL.steel,xx,.95,-.2,0,{m:.8,r:.2}); }
+  bx(g,w,.75,.02,0xbcd3dc,0,1.5,-.27,0,{m:.6,r:.05}); return g; }
+function stall(p,u0,u1,v0,v1,doorSide){ // partitions 2.0 m high
+  const h=2.0, c=0xb9c4c9; bx(p,.03,h,v1-v0,c,u0,h/2+.15,(v0+v1)/2); bx(p,.03,h,v1-v0,c,u1,h/2+.15,(v0+v1)/2); }
+function counter(p,u0,u1,v,depth,ry=0,c=COL.steel){ const w=u1-u0, g=grp(p,(u0+u1)/2,v,ry); bx(g,w,.85,depth,0xe4e1db,0,.425,0); bx(g,w+.02,.04,depth+.02,c,0,.87,0,0,{m:.6,r:.3}); return g; }
+function lockerRow(p,u,v,n,ry){ const g=grp(p,u,v,ry); for(let i=0;i<n;i++){ bx(g,.38,1.8,.5,0x8fa3b0,-(n-1)*.2+i*.4,.9,0,0,{m:.3,r:.5}); bx(g,.02,1.7,.01,COL.dark,-(n-1)*.2+i*.4+.19,.9,.26); } return g; }
+function tv(p,x,y,z,ry,w=1.6){ const g=grp(p,x,z,ry,y); bx(g,w,w*.56,.05,COL.screen,0,0,0,0,{r:.2,m:.3}); return g; }
+function stairs(p){ // two-flight dog-leg stair, 1.8 m per flight
+  const n=11, rise=FH/2/n, run=2.3/n;
+  for(let i=0;i<n;i++){ bx(p,1.5,rise*(i+1),run,COL.stone,1.05,rise*(i+1)/2,7.65+run*i+run/2); bx(p,1.5,FH/2+rise*(i+1),run,COL.stone,2.75,(FH/2+rise*(i+1))/2,9.95-run*i-run/2); }
+  bx(p,3.4,.2,1.0,COL.stone,1.9,FH/2-.1,10.45); bx(p,.12,FH*.9,2.3,COL.wall,1.9,FH*.45,8.8);
+}
+
+/* --- rooms per floor (u0,u1,v0,v1, floor finish, label point) --- */
+const ROOMS=[
+  [ {n:'방풍실',r:[-2.1,0,3.5,7.5],f:'stone'}, {n:'홀',r:[0,8.6,3.5,7.5],f:'stone'}, {n:'계단',r:[0,3.8,7.5,11],f:'stone',nl:1},
+    {n:'남자화장실',r:[3.8,6.2,7.5,11],f:'wet'}, {n:'여자화장실',r:[6.2,8.6,7.5,11],f:'wet'}, {n:'접견실',r:[0,5.1,0,3.5],f:'wood'},
+    {n:'방',r:[5.1,8.6,0,3.5],f:'wood'}, {n:'식당 (126석)',r:[8.6,23,0,11],f:'tile',lp:[14.5,6.4]}, {n:'주방',r:[18,23,7.5,11],f:'kitchen'} ],
+  [ {n:'홀',r:[0,3.8,3.5,7.5],f:'stone'}, {n:'계단',r:[0,3.8,7.5,11],f:'stone',nl:1}, {n:'휴게실',r:[0,3.8,0,3.5],f:'wood'},
+    {n:'남자화장실',r:[3.8,6.2,7.5,11],f:'wet'}, {n:'여자화장실',r:[6.2,8.6,7.5,11],f:'wet'},
+    {n:'사무실',r:[3.8,23,0,7.5],f:'carpet',lp:[13,4]}, {n:'사무실b',r:[8.6,23,7.5,11],f:'carpet',nl:1} ],
+  [ {n:'홀',r:[0,3.8,0,7.5],f:'stone'}, {n:'계단',r:[0,3.8,7.5,11],f:'stone',nl:1}, {n:'화장실',r:[3.8,6.2,7.5,11],f:'wet'},
+    {n:'보일러실',r:[6.2,8.6,7.5,11],f:'stone'}, {n:'샤워장',r:[8.6,11,7.5,11],f:'wet'}, {n:'탈의실',r:[11,13.4,7.5,11],f:'wood'},
+    {n:'방-1',r:[13.4,16.5,7.5,11],f:'dorm'}, {n:'방-2',r:[16.5,19.7,7.5,11],f:'dorm'}, {n:'방-3',r:[19.7,23,5.8,11],f:'dorm'},
+    {n:'방-4',r:[19.7,23,3,5.8],f:'dorm'}, {n:'방-5',r:[19.7,23,0,3],f:'dorm'}, {n:'현관',r:[3.8,7.3,5.8,7.5],f:'stone'},
+    {n:'복도',r:[7.3,19.7,5.8,7.5],f:'stone'}, {n:'복도b',r:[18,19.7,0,5.8],f:'stone',nl:1}, {n:'회의실',r:[3.8,18,0,5.8],f:'carpet'} ],
+];
+/* partition walls [u0,v0,u1,v1,[[doorCenter,width],...]] */
+const WALLS=[
+  [ [3.8,7.5,8.6,7.5,[[4.6,.85],[7.8,.85]]], [3.8,7.5,3.8,11], [6.2,7.5,6.2,11], [8.6,0,8.6,11,[[.8,.9],[5.5,1.8]]],
+    [0,3.5,8.6,3.5,[[3.8,1.8],[7.6,.9]]], [5.1,0,5.1,3.5], [18,7.5,23,7.5,[[21.6,.9]]], [18,7.5,18,11,[[8.6,.0]]] ],
+  [ [3.8,0,3.8,11,[[5.5,1.8]]], [0,3.5,3.8,3.5,[[1.9,1.6]]], [3.8,7.5,8.6,7.5,[[4.6,.85],[7.8,.85]]], [6.2,7.5,6.2,11], [8.6,7.5,8.6,11] ],
+  [ [3.8,0,3.8,11,[[2.6,1.6],[6.65,.9]]], [3.8,7.5,19.7,7.5,[[4.6,.85],[7.8,.85],[9.4,.85],[12.6,.85],[14.2,.85],[17.3,.85]]],
+    [6.2,7.5,6.2,11], [8.6,7.5,8.6,11], [11,7.5,11,11], [13.4,7.5,13.4,11], [16.5,7.5,16.5,11],
+    [19.7,0,19.7,11,[[6.6,.85],[5.2,.85],[2.4,.85]]], [19.7,5.8,23,5.8], [19.7,3,23,3], [3.8,5.8,18,5.8], [18,0,18,5.8,[[5.0,.0]]] ],
+];
+
+function partition(p,u0,v0,u1,v1,doors=[],h=WH,t=.12){
+  const along=u0===u1?'v':'u', a0=along==='u'?u0:v0, a1=along==='u'?u1:v1;
+  const cuts=doors.filter(d=>d[1]>0).map(([c,w])=>[c-w/2,c+w/2]).sort((x,y)=>x[0]-y[0]);
+  let s=a0; const segs=[];
+  for(const [d0,d1] of cuts){ if(d0>s) segs.push([s,d0,0,h]); segs.push([d0,d1,2.1,h]); s=d1; }
+  if(s<a1) segs.push([s,a1,0,h]);
+  for(const [s0,s1,y0,y1] of segs){ const L2=s1-s0, c=(s0+s1)/2;
+    if(along==='u') bx(p,L2,y1-y0,t,COL.wall,c,(y0+y1)/2,v0); else bx(p,t,y1-y0,L2,COL.wall,u0,(y0+y1)/2,c); }
+}
+function perimeter(p,f){
+  const t=.2, cp=cm(COL.wall), sill=.9, head=2.5;
+  for(const v of [0,AD]){ const z=v===0?-t/2+.1:AD+t/2-.1;
+    bx(p,AW,sill,t,COL.wall,AW/2,sill/2,z); bx(p,AW,WH-head,t,COL.wall,AW/2,(head+WH)/2,z);
+    bx(p,AW,head-sill,.04,COL.glass,AW/2,(sill+head)/2,z,0,{t:.32,r:.05});
+    for(let u=0;u<=AW+.01;u+=AW/8) bx(p,.06,head-sill,.08,COL.trim,Math.min(Math.max(u,.03),AW-.03),(sill+head)/2,z); }
+  for(const u of [0,AW]){ const x=u===0?t/2-.1+.1:AW-t/2;
+    if(u===0){ const gap=f===0?[3.9,7.1]:[4.2,6.8];
+      bx(p,t,WH,gap[0],COL.wall,x,WH/2,gap[0]/2); bx(p,t,WH,AD-gap[1],COL.wall,x,WH/2,(gap[1]+AD)/2);
+      bx(p,.04,WH,gap[1]-gap[0],COL.glass,x,WH/2,(gap[0]+gap[1])/2,0,{t:f===0?.18:.32,r:.05}); }
+    else { if(f===0){ bx(p,t,WH,9.35,COL.wall,x,WH/2,4.675); bx(p,t,WH,AD-10.25,COL.wall,x,WH/2,(10.25+AD)/2); bx(p,t,.9,.9,COL.wall,x,WH-.45,9.8); }
+      else bx(p,t,WH,AD,COL.wall,x,WH/2,AD/2); } }
+  for(const u of [0,3.8,8.6,13.4,18.2,23]) for(const v of [0,AD]) bx(p,.25,WH,.25,COL.trim,Math.min(Math.max(u,.15),AW-.15),WH/2,Math.min(Math.max(v,.15),AD-.15));
+}
+
+function furnish(p,f){
+  if(f===0){
+    // 방풍실 planters + 홀
+    for(const v of [1.75,9.25]){ bx(p,1.9,.45,3.3,0x8d8478,-1.05,.225,v); plant(p,-1.05,v-1,1.1); plant(p,-1.05,v+.9,.9); }
+    plant(p,.5,4.0); plant(p,8.0,4.0); bx(p,1.6,.45,.45,COL.wood,5.5,.225,7.1);
+    stairs(p);
+    // 화장실 (남: WC 2 + 소변기, 여: WC 2)
+    for(const [u0,u1,men] of [[3.8,6.2,1],[6.2,8.6,0]]){
+      for(let i=0;i<2;i++){ const uu=u0+.6+i*1.2; wc(p,uu,10.55,Math.PI); stall(p,uu-.6,uu+.6,9.6,11); }
+      vanity(p,u0+1.2,7.9,1.6,0,1);
+      if(men) urinal(p,u1-.35,8.9,-Math.PI/2);
+    }
+    // 접견실: two lounge groups
+    for(const cu of [1.3,3.8]){ table(p,cu,1.75,.9,.55,COL.wood,.42); armchair(p,cu-.85,1.75,face(1,0)); armchair(p,cu+.85,1.75,face(-1,0)); armchair(p,cu,.75,0); }
+    plant(p,4.75,3.1,.8); shelf(p,2.55,.25,1.2,0,1.0);
+    // 방: desk, chair, bookshelf, sofa
+    desk(p,6.85,.55,0); shelf(p,8.3,1.9,1.2,-Math.PI/2); sofa(p,6.8,3.0,1.8,Math.PI,COL.fabric);
+    // 식당 126석: 5 columns × (3.0 m + 1.5 m) + 3 columns × 3.0 m
+    for(const c of [10.1,12.7,15.2,17.7,20.2]){ dining(p,c,2.0,3.0); dining(p,c,5.2,1.5); }
+    for(const c of [10.9,13.3,15.7]) dining(p,c,9.1,3.0);
+    bx(p,2.4,1.0,.6,COL.steel,16.9,.5,7.2,0,{m:.6,r:.3}); // 배식대
+    bx(p,.6,1.6,.5,COL.white,22.6,.8,6.6); // 정수기
+    // 주방: wall counters, stove + hood, sink, fridge, island, pass counter
+    counter(p,18.2,22.0,10.65,.65); bx(p,1.6,.06,.6,COL.dark,19.4,.9,10.65);
+    for(const x of [18.9,19.9]) for(const z of [10.5,10.8]) cyl(p,.1,.02,0x111111,x,.94,z);
+    bx(p,1.8,.5,.8,COL.steel,19.4,2.3,10.55,0,{m:.7,r:.25}); bx(p,1.0,.06,.5,0x9aa3a8,21.1,.88,10.65,0,{m:.8,r:.2});
+    bx(p,.9,2.0,.75,COL.steel,22.5,1.0,10.55,0,{m:.7,r:.3}); bx(p,.9,2.0,.75,COL.steel,22.5,1.0,9.7,0,{m:.7,r:.3});
+    counter(p,19.2,21.4,9.1,.9); bx(p,1.5,.04,.4,COL.woodL,19.6,.95,9.1);
+    counter(p,18.2,20.8,7.85,.5); shelf(p,18.45,8.9,1.2,Math.PI/2);
+  }
+  if(f===1){
+    stairs(p);
+    for(const [u0,u1,men] of [[3.8,6.2,1],[6.2,8.6,0]]){
+      for(let i=0;i<2;i++){ const uu=u0+.6+i*1.2; wc(p,uu,10.55,Math.PI); stall(p,uu-.6,uu+.6,9.6,11); }
+      vanity(p,u0+1.2,7.9,1.6,0,1); if(men) urinal(p,u1-.35,8.9,-Math.PI/2); }
+    // 홀
+    plant(p,.5,4.0); bx(p,1.4,.45,.45,COL.wood,.4,.225,6.0,Math.PI/2);
+    // 휴게실: sofa, coffee table, water, fridge
+    sofa(p,1.9,.6,2.2,0); table(p,1.9,1.65,1.0,.55,COL.wood,.42); armchair(p,.6,2.6,face(1,-.3)); bx(p,.6,1.5,.6,COL.white,3.35,.75,3.0); plant(p,3.3,.5,.8);
+    // 사무실: 4 desk clusters (2×2 facing), manager desk, meeting table, cabinets, printer
+    for(const cu of [10.0,13.3,16.6,19.9]){ for(const s of [-.75,.75]){ desk(p,cu+s,2.1,Math.PI); desk(p,cu+s,2.8,0); }
+      bx(p,3.0,.4,.03,0x6c7a72,cu,1.0,2.45); }
+    desk(p,6.2,1.6,Math.PI); shelf(p,6.2,.25,2.4,0,1.2); bx(p,1.6,.75,.8,COL.woodL,6.2,.375,3.6); sofa(p,6.0,6.6,2.0,Math.PI,COL.fabric); table(p,6.0,5.6,1.0,.5,COL.wood,.42);
+    table(p,15.5,9.2,3.6,1.2,COL.woodL); for(const x of [14.2,15.5,16.8]){ officeChair(p,x,8.3,0); officeChair(p,x,10.1,Math.PI); }
+    for(let i=0;i<6;i++) bx(p,.9,1.2,.45,0xd5d8d9,9.2+i*.95,.6,10.7);
+    bx(p,.7,1.0,.6,0xd5d8d9,22.4,.5,6.5); bx(p,.6,1.6,.6,COL.white,22.5,.8,8.2); plant(p,22.4,.5); plant(p,9.0,7.1);
+    for(let i=0;i<5;i++) bx(p,.45,1.8,.45,0xbcc2c5,11.0+i*.48,.9,5.35,0,{m:.2});
+  }
+  if(f===2){
+    stairs(p);
+    for(let i=0;i<2;i++){ const uu=4.4+i*1.2; wc(p,uu,10.55,Math.PI); stall(p,uu-.6,uu+.6,9.6,11); } vanity(p,5.0,7.9,1.6,0,1);
+    // 보일러실
+    bx(p,.9,1.7,.7,0xd7d2c8,7.4,.85,10.5); cyl(p,.38,1.5,0x9aa6ad,7.0,.75,8.6,{m:.5}); bx(p,.05,.05,2.2,0xb34a3a,8.0,2.4,9.3);
+    // 샤워장
+    for(let i=0;i<3;i++){ const z=8.4+i*.95; bx(p,1.0,1.9,.03,0xd9e3e6,10.4,1.05,z-.48,0,{t:.6}); cyl(p,.05,.05,COL.steel,10.85,2.1,z); bx(p,.04,.6,.04,COL.steel,10.9,1.8,z); }
+    // 탈의실
+    lockerRow(p,12.2,10.7,5,Math.PI); bx(p,1.6,.45,.4,COL.wood,12.2,.225,9.0); bx(p,.5,.9,.5,COL.white,11.4,.45,7.9);
+    // 방-1..방-5: bed, desk, wardrobe
+    const room=(u0,u1,v0,v1,vert)=>{ if(!vert){ bed(p,u0+.65,v1-1.1,Math.PI); desk(p,u1-.8,v1-.45,Math.PI,false); wardrobe(p,u1-.55,v0+.6,.9,Math.PI); }
+      else { bed(p,u1-1.1,v0+.65,-Math.PI/2); desk(p,u1-.45,v1-.85,-Math.PI/2,false); wardrobe(p,u0+1.4,v1-.4,1.0,Math.PI); } };
+    room(13.4,16.5,7.5,11); room(16.5,19.7,7.5,11); room(19.7,23,5.8,11,1); room(19.7,23,3,5.8,1); room(19.7,23,0,3,1);
+    // 현관 신발장
+    bx(p,3.2,1.0,.38,COL.woodL,5.55,.5,6.05);
+    // 회의실: 8 m table, 18 chairs, TV
+    table(p,11.2,2.9,7.6,1.5,COL.wood); for(let i=0;i<8;i++){ const x=7.9+i*.94; officeChair(p,x,1.75,0); officeChair(p,x,4.05,Math.PI); }
+    officeChair(p,15.5,2.9,-Math.PI/2); tv(p,4.0,1.6,2.9,Math.PI/2,2.0); bx(p,.45,.75,2.4,COL.woodL,4.15,.375,2.9); plant(p,17.4,.5); plant(p,17.4,5.3);
+    // 홀
+    plant(p,.5,.5); bx(p,.45,.45,1.6,COL.wood,.35,.225,3.0);
+  }
+}
+
 function buildAnnex(a){
   const g=new THREE.Group(); world.add(g);
   const o=P(...a.p0); const d=new THREE.Vector3(a.dir[0],0,-a.dir[1]).normalize();
   const Vv=new THREE.Vector3(8896,0,-21199).normalize();
   g.matrixAutoUpdate=false; g.matrix.makeBasis(d,new THREE.Vector3(0,1,0),Vv).setPosition(o);
-  const LW=23, WW=11, FH=3.6, H=FH*3;
-  box(LW,H,WW,M.annex,LW/2,H/2,WW/2,g);
-  box(LW+0.2,1.0,WW+0.2,M.annex,LW/2,H+0.5,WW/2,g);
-  box(LW+0.3,0.15,WW+0.3,M.band,LW/2,H+1.05,WW/2,g);
+  const H=FH*3;
+  // exterior shell
+  const s=new THREE.Group(); g.add(s); ann.shell=s;
+  box(AW,H,AD,M.annex,AW/2,H/2,AD/2,s);
+  box(AW+0.2,1.0,AD+0.2,M.annex,AW/2,H+0.5,AD/2,s);
+  box(AW+0.3,0.15,AD+0.3,M.band,AW/2,H+1.05,AD/2,s);
   for(let f=0;f<3;f++){
-    const y=f*FH+1.9;
-    for(const z of [-0.04,WW+0.04]) for(let s=0;s<4;s++){ box(4.6,1.6,0.06,M.glass,2.8+s*5.6,y,z,g,false); }
-    if(f>0) box(LW+0.12,0.25,WW+0.12,M.band,LW/2,f*FH,WW/2,g);
+    const y=f*FH+1.7;
+    for(const z of [-0.04,AD+0.04]) for(let k=0;k<4;k++){ box(4.6,1.6,0.06,M.glass,2.8+k*5.6,y,z,s,false); }
+    if(f>0) box(AW+0.12,0.25,AD+0.12,M.band,AW/2,f*FH,AD/2,s);
   }
-  // 방풍실 (entrance vestibule) on X1 side
-  box(2.1,3.3,4.0,M.glass,-1.05,1.65,5.5,g);
-  box(2.4,0.3,4.6,M.band,-1.2,3.45,5.5,g);
-  labels.push({el:mk('lbl',a.name),pos:()=>new THREE.Vector3(LW/2,H+4,WW/2).applyMatrix4(g.matrix),grp:'bld'});
-  a.g=g; a.center=new THREE.Vector3(LW/2,0,WW/2).applyMatrix4(g.matrix); a.U=d; a.V=Vv;
+  box(2.1,3.3,4.0,M.glass,-1.05,1.65,5.5,s);
+  box(2.4,0.3,4.6,M.band,-1.2,3.45,5.5,s);
+  s.traverse(m=>{ if(m.isMesh) ann.pick.push(m); });
+  // interior floors
+  for(let f=0;f<3;f++){
+    const fg=new THREE.Group(); fg.position.y=f*FH; fg.visible=false; g.add(fg); ann.floors.push(fg);
+    bx(fg,AW+.2,.2,AD+.2,0x9c9a94,AW/2,-.1,AD/2);
+    ROOMS[f].forEach((r,i)=>{ const [u0,u1,v0,v1]=r.r; const fl=new THREE.Mesh(new THREE.BoxGeometry(u1-u0,.02,v1-v0),cm(FLOOR[r.f],{r:.85}));
+      fl.position.set((u0+u1)/2,.01+i*.002,(v0+v1)/2); fl.receiveShadow=true; fg.add(fl);
+      if(!r.nl){ const lp=r.lp||[(u0+u1)/2,(v0+v1)/2]; labels.push({el:mk('lbl room',r.n),pos:()=>new THREE.Vector3(lp[0],f*FH+2.2,lp[1]).applyMatrix4(g.matrix),grp:'room',floor:f}); } });
+    perimeter(fg,f);
+    for(const w of WALLS[f]) partition(fg,...w);
+    furnish(fg,f);
+    if(f===0){ bx(fg,1.9,.03,.03,COL.trim,-1.05,3.3,3.5); }
+  }
+  // vestibule shell piece stays visible on 1F inside view
+  const vest=new THREE.Group(); g.add(vest); ann.vest=vest; vest.visible=false;
+  bx(vest,.04,3.3,4.0,COL.glass,-2.1,1.65,5.5,0,{t:.25,r:.05}); bx(vest,2.4,.1,4.6,COL.trim,-1.2,3.35,5.5);
+  for(const v of [3.5,7.5]) bx(vest,2.1,3.3,.04,COL.glass,-1.05,1.65,v,0,{t:.25,r:.05});
+  labels.push({el:mk('lbl',a.name+' · 클릭하면 내부'),pos:()=>new THREE.Vector3(AW/2,H+4,AD/2).applyMatrix4(g.matrix),grp:'bld',annex:1});
+  a.g=g; a.center=new THREE.Vector3(AW/2,0,AD/2).applyMatrix4(g.matrix); a.U=d; a.V=Vv;
 }
 
 /* ---------- labels ---------- */
@@ -344,10 +552,13 @@ const VIEWS={
   aerial:()=>({pos:C.clone().add(new THREE.Vector3(-150,135,175)),tgt:C.clone().add(new THREE.Vector3(0,4,0))}),
   front:()=>({pos:new THREE.Vector3(-28,9,-9).applyMatrix4(A.g.matrix),tgt:new THREE.Vector3(70,4,-6).applyMatrix4(A.g.matrix)}),
   inside:()=>{ const p=new THREE.Vector3(88,3,7).applyMatrix4(A.g.matrix), t=new THREE.Vector3(20,9,14).applyMatrix4(A.g.matrix); return {pos:p,tgt:t}; },
+  interior:()=>{ const t=ANNEX.center.clone().add(new THREE.Vector3(0,ann.cur*FH+0.5,0)); return {pos:t.clone().addScaledVector(ANNEX.U,-5).addScaledVector(ANNEX.V,-11).add(new THREE.Vector3(0,24,0)),tgt:t}; },
   annex:()=>({pos:ANNEX.center.clone().addScaledVector(ANNEX.V,40).addScaledVector(ANNEX.U,-28).add(new THREE.Vector3(0,14,0)),tgt:ANNEX.center.clone().add(new THREE.Vector3(0,5,0))}),
 };
 let tween=null;
 function go(name,instant=false){
+  if(name==='interior'&&ann.mode!=='in'){ setInterior(ann.cur); return; }
+  if(name!=='interior'&&ann.mode==='in') setOutside();
   const v=VIEWS[name]();
   document.querySelectorAll('.views button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===name)));
   if(instant||reduced){ camera.position.copy(v.pos); controls.target.copy(v.tgt); controls.update(); return; }
@@ -355,6 +566,26 @@ function go(name,instant=false){
 }
 document.querySelectorAll('.views button').forEach(b=>b.addEventListener('click',()=>go(b.dataset.view)));
 controls.addEventListener('start',()=>{tween=null;});
+
+/* ---------- 부1동 interior mode ---------- */
+const floorbar=document.getElementById('floorbar');
+function setInterior(f,move=true){
+  ann.mode='in'; ann.cur=f; ann.shell.visible=false; ann.vest.visible=true;
+  ann.floors.forEach((g,i)=>g.visible=i<=f);
+  floorbar.hidden=false; floorbar.querySelectorAll('[data-floor]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.floor===f)));
+  if(move) go('interior');
+}
+function setOutside(){ ann.mode='out'; ann.shell.visible=true; ann.vest.visible=false; ann.floors.forEach(g=>g.visible=false); floorbar.hidden=true; }
+floorbar.querySelectorAll('[data-floor]').forEach(b=>b.addEventListener('click',()=>setInterior(+b.dataset.floor)));
+document.getElementById('exitIn').addEventListener('click',()=>go('annex'));
+const ray=new THREE.Raycaster(), ndc=new THREE.Vector2(); let downAt=null;
+function hitAnnex(e){ const r=renderer.domElement.getBoundingClientRect(); ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);
+  ray.setFromCamera(ndc,camera); return ray.intersectObjects(ann.pick,false).length>0; }
+renderer.domElement.addEventListener('pointerdown',e=>{downAt=[e.clientX,e.clientY];});
+renderer.domElement.addEventListener('pointerup',e=>{ if(!downAt) return; const moved=Math.hypot(e.clientX-downAt[0],e.clientY-downAt[1]); downAt=null;
+  if(moved<6&&ann.mode==='out'&&hitAnnex(e)) setInterior(0); });
+renderer.domElement.addEventListener('pointermove',e=>{ if(e.buttons||ann.mode!=='out') { renderer.domElement.style.cursor=''; return; }
+  renderer.domElement.style.cursor=hitAnnex(e)?'pointer':''; });
 
 /* ---------- toggles ---------- */
 const $=id=>document.getElementById(id);
@@ -385,7 +616,8 @@ renderer.setAnimationLoop(now=>{
   if(!lblRoot.hidden){ const w=innerWidth,h=innerHeight;
     const inside=FACT.some(f=>{ const q=camera.position.clone().applyMatrix4(f.inv); return q.x>0&&q.x<L&&q.z>0&&q.z<W&&q.y<RIDGE_T; });
     for(const l of labels){ tmp.copy(l.pos()); const d=tmp.distanceTo(camera.position); tmp.project(camera);
-      const vis=!l.hide && tmp.z<1 && Math.abs(tmp.x)<1.1 && Math.abs(tmp.y)<1.1 && (l.grp!=='crane'||(d<220&&(inside||!roofs[0].visible)));
+      const ok=l.grp==='room'?(ann.mode==='in'&&l.floor===ann.cur):l.annex?ann.mode==='out':l.grp==='crane'?(d<220&&(inside||!roofs[0].visible)):true;
+      const vis=!l.hide && ok && tmp.z<1 && Math.abs(tmp.x)<1.1 && Math.abs(tmp.y)<1.1;
       l.el.hidden=!vis; if(vis){ l.el.style.left=((tmp.x+1)/2*w)+'px'; l.el.style.top=((1-tmp.y)/2*h)+'px'; } } }
 });
 </script>
