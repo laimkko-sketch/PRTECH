@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#E6EAEC">
 <title>피알테크 공장 3D</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,6 +25,7 @@
   --bg:#11161A; --panel:rgba(22,28,32,.92); --fg:#E4EAEC; --muted:#97A3A8; --line:#2E393E;
   --accent:#F0B429; --accent-ink:#11161A; --chip:#1C2428;
   --sky:#1A232A; --ground:#2B302C; --pad:#3B4144; --wall:#C9CECD; --roof:#46525C; --steel:#6F7B83; color-scheme:dark}
+[hidden]{display:none!important}
 html,body{height:100%;margin:0}
 body{background:var(--bg);color:var(--fg);font-family:var(--font-body);overflow:hidden;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -70,9 +72,31 @@ dd{font-variant-numeric:tabular-nums;line-height:1.45}
 .floorbar button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .hint{position:fixed;right:max(14px,env(safe-area-inset-right,0px));bottom:calc(64px + env(safe-area-inset-bottom,0px));
   font-size:11px;color:var(--muted);text-align:right;line-height:1.5}
+.m-hint{display:none}
 @media (max-width:640px){
-  .panel{max-height:calc(100% - 190px)}
-  .floorbar{bottom:calc(104px + env(safe-area-inset-bottom,0px))}
+  .panel{top:calc(8px + env(safe-area-inset-top,0px));left:max(8px,env(safe-area-inset-left,0px));width:calc(100% - 16px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));max-height:calc(100% - 150px)}
+  .tb-head{padding:9px 12px 8px}
+  .tb-head h1{font-size:15px}
+  .m-hint{display:block;margin:2px 0 0;font-size:11px;font-weight:400;color:var(--muted)}
+  details[open] .m-hint{display:none}
+  .site{padding:7px 12px;font-size:11.5px}
+  dt,dd{padding:6px 12px;font-size:12px}
+  dt{font-size:11px}
+  .ctrls{padding:9px 12px;gap:8px 10px}
+  .ctrls label{font-size:13px;min-height:28px}
+  .ctrls input{width:18px;height:18px}
+  .note{padding:8px 12px 10px}
+  .views{left:0;right:0;transform:none;width:auto;max-width:none;flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;
+    padding:2px max(10px,env(safe-area-inset-left,0px)) 2px max(10px,env(safe-area-inset-right,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));
+    scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .views::-webkit-scrollbar{display:none}
+  .views button{flex:0 0 auto;font-size:12.5px;padding:9px 13px}
+  .floorbar{bottom:calc(58px + env(safe-area-inset-bottom,0px));padding:4px;gap:2px;flex-wrap:nowrap;width:max-content}
+  .floorbar span{display:none}
+  .floorbar button{padding:8px 14px;font-size:13px}
+  .lbl{font-size:11px;padding:2px 6px}
+  .lbl.room{font-size:10.5px;padding:1px 5px}
+  .lbl.crane{font-size:10px}
   .hint{display:none}
 }
 </style>
@@ -84,7 +108,7 @@ dd{font-variant-numeric:tabular-nums;line-height:1.45}
 <div id="labels"></div>
 
 <details class="panel" id="panel" open>
-  <summary class="tb-head"><h1>(주)피알테크 공장 신축공사</h1><span class="toggle-ico"></span></summary>
+  <summary class="tb-head"><div><h1>(주)피알테크 공장 신축공사</h1><p class="m-hint">부1동을 탭하면 내부를 볼 수 있습니다</p></div><span class="toggle-ico"></span></summary>
   <div class="site">전남 장성군 삼서면 두월리 916-1 일원 · 공장 3D 모델<br><span class="num">건물배치도 S 1/1000 · 평면·입면·단면 기준</span></div>
   <dl>
     <div><dt>주동 (2개 동)</dt><dd><span class="num">150.0 × 25.0 m</span> · 동당 <span class="num">3,750 m²</span><br>X1–X31 @5 m, Y1–Y6 @5 m</dd></div>
@@ -148,7 +172,8 @@ const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 /* ---------- renderer / scene ---------- */
 const stage = document.getElementById('stage');
 const renderer = new THREE.WebGLRenderer({antialias:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+const SMALL=Math.min(innerWidth,innerHeight)<700;
+renderer.setPixelRatio(Math.min(devicePixelRatio,SMALL?1.75:2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -162,7 +187,7 @@ controls.enableDamping = true; controls.maxPolarAngle = Math.PI*0.495; controls.
 const hemi = new THREE.HemisphereLight(0xffffff, 0x8a8a80, 1.15); scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xfff4e2, 2.1);
 sun.position.set(-90,160,110); sun.castShadow = true;
-sun.shadow.mapSize.set(4096,4096);
+sun.shadow.mapSize.set(SMALL?2048:4096,SMALL?2048:4096);
 Object.assign(sun.shadow.camera,{left:-170,right:170,top:170,bottom:-170,near:10,far:500});
 sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.04;
 scene.add(sun); scene.add(sun.target);
@@ -514,7 +539,7 @@ function buildAnnex(a){
   const vest=new THREE.Group(); g.add(vest); ann.vest=vest; vest.visible=false;
   bx(vest,.04,3.3,4.0,COL.glass,-2.1,1.65,5.5,0,{t:.25,r:.05}); bx(vest,2.4,.1,4.6,COL.trim,-1.2,3.35,5.5);
   for(const v of [3.5,7.5]) bx(vest,2.1,3.3,.04,COL.glass,-1.05,1.65,v,0,{t:.25,r:.05});
-  labels.push({el:mk('lbl',a.name+' · 클릭하면 내부'),pos:()=>new THREE.Vector3(AW/2,H+4,AD/2).applyMatrix4(g.matrix),grp:'bld',annex:1});
+  labels.push({el:mk('lbl',a.name+(matchMedia('(pointer: coarse)').matches?' · 탭하면 내부':' · 클릭하면 내부')),pos:()=>new THREE.Vector3(AW/2,H+4,AD/2).applyMatrix4(g.matrix),grp:'bld',annex:1});
   a.g=g; a.center=new THREE.Vector3(AW/2,0,AD/2).applyMatrix4(g.matrix); a.U=d; a.V=Vv;
 }
 
@@ -549,17 +574,27 @@ sun.shadow.camera.updateProjectionMatrix();
 /* ---------- views ---------- */
 const A=FACT[0];
 const VIEWS={
-  aerial:()=>({pos:C.clone().add(new THREE.Vector3(-150,135,175)),tgt:C.clone().add(new THREE.Vector3(0,4,0))}),
+  aerial:()=>portrait()?{pos:C.clone().addScaledVector(A.U,-150).addScaledVector(A.V,-25).add(new THREE.Vector3(0,190,0)),tgt:C.clone().addScaledVector(A.U,-8),fit:1}
+                      :{pos:C.clone().add(new THREE.Vector3(-150,135,175)),tgt:C.clone().add(new THREE.Vector3(0,4,0))},
   front:()=>({pos:new THREE.Vector3(-28,9,-9).applyMatrix4(A.g.matrix),tgt:new THREE.Vector3(70,4,-6).applyMatrix4(A.g.matrix)}),
   inside:()=>{ const p=new THREE.Vector3(88,3,7).applyMatrix4(A.g.matrix), t=new THREE.Vector3(20,9,14).applyMatrix4(A.g.matrix); return {pos:p,tgt:t}; },
-  interior:()=>{ const t=ANNEX.center.clone().add(new THREE.Vector3(0,ann.cur*FH+0.5,0)); return {pos:t.clone().addScaledVector(ANNEX.U,-5).addScaledVector(ANNEX.V,-11).add(new THREE.Vector3(0,24,0)),tgt:t}; },
+  interior:()=>{ const t=ANNEX.center.clone().add(new THREE.Vector3(0,ann.cur*FH+0.5,0));
+    if(portrait()) return {pos:t.clone().addScaledVector(ANNEX.U,-17).addScaledVector(ANNEX.V,-5).add(new THREE.Vector3(0,27,0)),tgt:t.clone().addScaledVector(ANNEX.U,1.5),fit:1};
+    return {pos:t.clone().addScaledVector(ANNEX.U,-5).addScaledVector(ANNEX.V,-11).add(new THREE.Vector3(0,24,0)),tgt:t}; },
   annex:()=>({pos:ANNEX.center.clone().addScaledVector(ANNEX.V,40).addScaledVector(ANNEX.U,-28).add(new THREE.Vector3(0,14,0)),tgt:ANNEX.center.clone().add(new THREE.Vector3(0,5,0))}),
 };
-let tween=null;
+let tween=null, curView='aerial';
+const portrait=()=>camera.aspect<0.9;
+// portrait screens: keep the landscape horizontal field of view by pulling the camera back
+function viewK(){ const a=camera.aspect; if(a>=1.2) return 1;
+  const want=Math.atan(Math.tan(THREE.MathUtils.degToRad(21))*1.6), have=Math.atan(Math.tan(THREE.MathUtils.degToRad(camera.fov/2))*a);
+  return Math.max(1,Math.tan(want)/Math.tan(have)); }
 function go(name,instant=false){
   if(name==='interior'&&ann.mode!=='in'){ setInterior(ann.cur); return; }
   if(name!=='interior'&&ann.mode==='in') setOutside();
-  const v=VIEWS[name]();
+  const v=VIEWS[name](); curView=name;
+  const k=(name==='inside'||v.fit)?1:Math.min(viewK(),name==='front'?1.5:2.0);
+  if(k>1) v.pos=v.tgt.clone().add(v.pos.clone().sub(v.tgt).multiplyScalar(k));
   document.querySelectorAll('.views button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===name)));
   if(instant||reduced){ camera.position.copy(v.pos); controls.target.copy(v.tgt); controls.update(); return; }
   tween={p0:camera.position.clone(),t0:controls.target.clone(),p1:v.pos,t1:v.tgt,start:performance.now(),dur:1100};
@@ -581,7 +616,7 @@ document.getElementById('exitIn').addEventListener('click',()=>go('annex'));
 const ray=new THREE.Raycaster(), ndc=new THREE.Vector2(); let downAt=null;
 function hitAnnex(e){ const r=renderer.domElement.getBoundingClientRect(); ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);
   ray.setFromCamera(ndc,camera); return ray.intersectObjects(ann.pick,false).length>0; }
-renderer.domElement.addEventListener('pointerdown',e=>{downAt=[e.clientX,e.clientY];});
+renderer.domElement.addEventListener('pointerdown',e=>{downAt=[e.clientX,e.clientY]; if(innerWidth<640&&$('panel').open) $('panel').open=false;});
 renderer.domElement.addEventListener('pointerup',e=>{ if(!downAt) return; const moved=Math.hypot(e.clientX-downAt[0],e.clientY-downAt[1]); downAt=null;
   if(moved<6&&ann.mode==='out'&&hitAnnex(e)) setInterior(0); });
 renderer.domElement.addEventListener('pointermove',e=>{ if(e.buttons||ann.mode!=='out') { renderer.domElement.style.cursor=''; return; }
@@ -604,8 +639,10 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',applyTheme)
 new MutationObserver(applyTheme).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 
 /* ---------- loop ---------- */
-function resize(){ const w=innerWidth,h=innerHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); }
-addEventListener('resize',resize); resize();
+function resize(){ const w=innerWidth,h=innerHeight, a=w/h; renderer.setSize(w,h,false); camera.aspect=a;
+  camera.fov=a<1.2?Math.min(60,42+(1.2-a)*26):42; camera.updateProjectionMatrix(); }
+let lastAspect=0;
+addEventListener('resize',()=>{ resize(); const a=camera.aspect; if((a<1)!==(lastAspect<1)) go(curView,true); lastAspect=a; }); resize(); lastAspect=camera.aspect;
 go('aerial',true);
 const tmp=new THREE.Vector3(), ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
 renderer.setAnimationLoop(now=>{
