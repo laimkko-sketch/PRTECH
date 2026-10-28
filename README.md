@@ -10,3 +10,9 @@ DWG 도면(건물배치도·평면도·입면도·단면도)을 바탕으로 만
 보기: https://laimkko-sketch.github.io/PRTECH/
 
 작성: 김동현 부장
+
+## PR TECH COLOR
+
+조감도 스타일 색상 버전(청색 지붕, PR TECH·VIDAN 로고, 배합동 사일로, 부1동 입구 VIDAN 명판, 진녹색 에폭시 바닥, 배치도 기반 주변 지형·수목)
+
+보기: https://laimkko-sketch.github.io/PRTECH/prtech-color/
