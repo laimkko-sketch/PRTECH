@@ -188,7 +188,7 @@ const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* ---------- renderer / scene ---------- */
 const stage = document.getElementById('stage');
-const renderer = new THREE.WebGLRenderer({antialias:true});
+const renderer = new THREE.WebGLRenderer({antialias:true,logarithmicDepthBuffer:true});
 const SMALL=Math.min(innerWidth,innerHeight)<700;
 renderer.setPixelRatio(Math.min(devicePixelRatio,SMALL?1.75:2));
 renderer.shadowMap.enabled = true;
@@ -197,7 +197,7 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.05;
 stage.appendChild(renderer.domElement);
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(42, 1, 0.5, 5000);
+const camera = new THREE.PerspectiveCamera(42, 1, 0.3, 5000);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true; controls.maxPolarAngle = Math.PI*0.495; controls.minDistance = 4; controls.maxDistance = 1400;
 
@@ -569,7 +569,7 @@ function buildAnnex(a){
     const fg=new THREE.Group(); fg.position.y=f*FH; fg.visible=false; g.add(fg); ann.floors.push(fg);
     bx(fg,AW+.2,.2,AD+.2,0x9c9a94,AW/2,-.1,AD/2);
     ROOMS[f].forEach((r,i)=>{ const [u0,u1,v0,v1]=r.r; const fl=new THREE.Mesh(new THREE.BoxGeometry(u1-u0,.02,v1-v0),cm(FLOOR[r.f],{r:.85}));
-      fl.position.set((u0+u1)/2,.01+i*.002,(v0+v1)/2); fl.receiveShadow=true; fg.add(fl);
+      fl.position.set((u0+u1)/2,.13+i*.004,(v0+v1)/2); fl.receiveShadow=true; fg.add(fl);
       if(!r.nl){ const lp=r.lp||[(u0+u1)/2,(v0+v1)/2]; labels.push({el:mk('lbl room',r.n),pos:()=>new THREE.Vector3(lp[0],f*FH+2.2,lp[1]).applyMatrix4(g.matrix),grp:'room',floor:f}); } });
     perimeter(fg,f);
     for(const w of WALLS[f]) partition(fg,...w);
@@ -639,12 +639,12 @@ const paddyTex=canvasTex((g,w,h)=>{ g.fillStyle='#ffffff'; g.fillRect(0,0,w,h); 
 paddyTex.repeat.set(.05,.05);
 const fieldTex=canvasTex((g,w,h)=>{ g.fillStyle='#ffffff'; g.fillRect(0,0,w,h); g.fillStyle='#d9ccb5'; for(let i=0;i<w;i+=22) g.fillRect(i,0,9,h); });
 fieldTex.repeat.set(.07,.07);
-const LU={'장':[0xb3b4ae,.03],'답':[0x79a03c,.02,paddyTex],'전':[0x8a7248,.02,fieldTex],'임':[0x3f6230,.02],'묘':[0x7a9a4e,.02]};
+const LU={'장':[0xb3b4ae,.04],'답':[0x79a03c,.04,paddyTex],'전':[0x8a7248,.04,fieldTex],'임':[0x3f6230,.04],'묘':[0x7a9a4e,.04]};
 CTX.parcels.forEach(p=>{ const t=LU[p.jm]||LU['묘']; flat(p,t[0],t[1],t[2]); });
-CTX.voids.forEach(p=>flat(p,0x7f9a52,.012));
-CTX.roads.forEach(p=>flat(p,0x55595d,.03));
-flat({o:CTX.site,h:[]},0xcdcdc7,.05).material=M.pad;
-CTX.band.forEach(p=>flat(p,0x5f8a3c,.035));
+CTX.voids.forEach(p=>flat(p,0x7f9a52,.015));
+CTX.roads.forEach(p=>flat(p,0x55595d,.08));
+flat({o:CTX.site,h:[]},0xcdcdc7,.10).material=M.pad;
+CTX.band.forEach(p=>flat(p,0x5f8a3c,.065));
 // existing neighbouring buildings (측량-건물)
 for(const b of CTX.bldg){ const sh=new THREE.Shape(b.map(p=>new THREE.Vector2(p[0],p[1])));
   const m=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,{depth:8,bevelEnabled:false}),[new THREE.MeshStandardMaterial({color:0x9fb3c4,roughness:.6,metalness:.2}),new THREE.MeshStandardMaterial({color:0xd8d9d6,roughness:.8})]);
