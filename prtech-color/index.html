@@ -648,8 +648,8 @@ CTX.voids.forEach(p=>flat(p,0x7f9a52,.015));
 {
   const asphaltTex=canvasTex((g,w,h)=>{ g.fillStyle='#ffffff'; g.fillRect(0,0,w,h); for(let i=0;i<3000;i++){ const v=190+(hash(i,7)*65|0); g.fillStyle=`rgb(${v},${v},${v})`; g.fillRect(hash(i,1)*w,hash(i,2)*h,2,2); } });
   asphaltTex.repeat.set(.15,.15);
-  CTX.roads.forEach(p=>flat(p,0x34383c,.08,asphaltTex));
-  const Y=.097, W=new THREE.MeshStandardMaterial({color:0xf3f3ef,roughness:.6,polygonOffset:true,polygonOffsetFactor:-2}),
+  CTX.roads.forEach(p=>flat(p,0x34383c,.12,asphaltTex));
+  const Y=.135, W=new THREE.MeshStandardMaterial({color:0xf3f3ef,roughness:.6,polygonOffset:true,polygonOffsetFactor:-2}),
         YL=new THREE.MeshStandardMaterial({color:0xf0b40c,roughness:.6,polygonOffset:true,polygonOffsetFactor:-2}),
         CB=new THREE.MeshStandardMaterial({color:0xd6d6cf,roughness:.85}), SW=new THREE.MeshStandardMaterial({color:0xb79a8c,roughness:.9});
   const strip=(a,b,w,mat)=>{ const dx=b[0]-a[0],dy=b[1]-a[1],len=Math.hypot(dx,dy); if(len<.05) return; const m=new THREE.Mesh(new THREE.PlaneGeometry(len,w),mat);

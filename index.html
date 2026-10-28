@@ -116,7 +116,8 @@ dd{font-variant-numeric:tabular-nums;line-height:1.45}
     <div><dt>외장</dt><dd>T125 내화판넬 벽체, T225 내화판넬 지붕, 박공지붕</dd></div>
     <div><dt>크레인</dt><dd>동당 4대: <span class="num">3t ×2, 2t ×2</span> (노란색)</dd></div>
     <div><dt>개구부</dt><dd>행가도어 <span class="num">5.0 × 5.0 m</span> 2개소, 하이샤시 창호 2단</dd></div>
-    <div><dt>회사·브랜드</dt><dd>PR TECH · 브랜드 VIDAN 비단<br>지붕 로고 · 정문 명판</dd></div>
+    <div><dt>회사·브랜드</dt><dd>PR TECH · 브랜드 VIDAN 비단<br>지붕 로고 · 정문 명판(진입로변)</dd></div>
+    <div><dt>정문·펜스</dt><dd>진입로와 대지 내 통로 연결, 문주·차단기 2기·경비실<br>대지 경계 전체 녹색 메쉬펜스 H 1.8 m</dd></div>
     <div><dt>내부 바닥</dt><dd>녹색 에폭시, 노란색 안전통로 라인</dd></div>
     <div><dt>원료 사일로</dt><dd><span class="num">160 m³ × 3기</span> · 경탄 / PVC / 가소제<br>주동(북측) X1 고층부 외측</dd></div>
     <div><dt>부1동</dt><dd><span class="num">23.0 × 11.0 m</span>, 지상 3층<br>1층 식당·주방·접견실 / 2층 사무실·휴게실 / 3층 회의실·방 5실·샤워장</dd></div>
@@ -135,7 +136,7 @@ dd{font-variant-numeric:tabular-nums;line-height:1.45}
   <button type="button" data-view="front">행가도어 마당</button>
   <button type="button" data-view="inside">내부·크레인</button>
   <button type="button" data-view="silo">사일로</button>
-  <button type="button" data-view="gate">정문 명판</button>
+  <button type="button" data-view="gate">정문</button>
   <button type="button" data-view="annex">부1동</button>
   <button type="button" data-view="interior">부1동 내부</button>
 </div>
@@ -780,8 +781,8 @@ CTX.voids.forEach(p=>flat(p,0x7f9a52,.015));
 {
   const asphaltTex=canvasTex((g,w,h)=>{ g.fillStyle='#ffffff'; g.fillRect(0,0,w,h); for(let i=0;i<3000;i++){ const v=190+(hash(i,7)*65|0); g.fillStyle=`rgb(${v},${v},${v})`; g.fillRect(hash(i,1)*w,hash(i,2)*h,2,2); } });
   asphaltTex.repeat.set(.15,.15);
-  CTX.roads.forEach(p=>flat(p,0x34383c,.08,asphaltTex));
-  const Y=.097, W=new THREE.MeshStandardMaterial({color:0xf3f3ef,roughness:.6,polygonOffset:true,polygonOffsetFactor:-2}),
+  CTX.roads.forEach(p=>flat(p,0x34383c,.12,asphaltTex));
+  const Y=.135, W=new THREE.MeshStandardMaterial({color:0xf3f3ef,roughness:.6,polygonOffset:true,polygonOffsetFactor:-2}),
         YL=new THREE.MeshStandardMaterial({color:0xf0b40c,roughness:.6,polygonOffset:true,polygonOffsetFactor:-2}),
         CB=new THREE.MeshStandardMaterial({color:0xd6d6cf,roughness:.85}), SW=new THREE.MeshStandardMaterial({color:0xb79a8c,roughness:.9});
   const strip=(a,b,w,mat)=>{ const dx=b[0]-a[0],dy=b[1]-a[1],len=Math.hypot(dx,dy); if(len<.05) return; const m=new THREE.Mesh(new THREE.PlaneGeometry(len,w),mat);
@@ -815,11 +816,26 @@ CTX.band.forEach(p=>flat(p,0x5f8a3c,.065));
 for(const b of CTX.bldg){ const sh=new THREE.Shape(b.map(p=>new THREE.Vector2(p[0],p[1])));
   const m=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,{depth:8,bevelEnabled:false}),[new THREE.MeshStandardMaterial({color:0x9fb3c4,roughness:.6,metalness:.2}),new THREE.MeshStandardMaterial({color:0xd8d9d6,roughness:.8})]);
   m.rotation.x=-Math.PI/2; m.castShadow=m.receiveShadow=true; scene.add(m); }
-// green mesh fence along the site boundary
-{ const fm=new THREE.MeshStandardMaterial({color:0x2f7a3e,transparent:true,opacity:.45,side:THREE.DoubleSide,depthWrite:false}), pm=new THREE.MeshStandardMaterial({color:0x2c5f33});
-  const pts=CTX.site; for(let i=1;i<pts.length;i++){ const [x0,y0]=pts[i-1],[x1,y1]=pts[i], len=Math.hypot(x1-x0,y1-y0); if(len<.5) continue;
-    const m=new THREE.Mesh(new THREE.PlaneGeometry(len,1.8),fm); m.position.set((x0+x1)/2,.95,-(y0+y1)/2); m.rotation.y=Math.atan2(y1-y0,x1-x0); scene.add(m);
-    const r=new THREE.Mesh(new THREE.BoxGeometry(len,.06,.06),pm); r.position.set((x0+x1)/2,1.85,-(y0+y1)/2); r.rotation.y=m.rotation.y; scene.add(r); } }
+// 녹색 메쉬펜스 (H 1.8 m, 기둥 @2.5 m) — 대지 경계 전체, 정문 구간만 개방
+const GATE={a:[31.0,63.6], b:[38.0,55.9]};   // 배치도: 동측 진입로가 대지 경계와 만나는 구간
+{ const tex=(()=>{ const c=document.createElement('canvas'); c.width=512; c.height=384; const g=c.getContext('2d');
+    g.strokeStyle='#58b54a'; g.lineWidth=5; g.lineCap='round';
+    for(let i=0;i<=12;i++){ const x=4+i*(504/12); g.beginPath(); g.moveTo(x,6); g.lineTo(x,380); g.stroke(); }          // 세로 와이어 @0.2 m
+    for(const y of [10,118,232,372]){ g.beginPath(); g.moveTo(0,y); g.lineTo(512,y); g.stroke(); }                         // 가로 와이어
+    for(const y of [64,176,300]){ g.lineWidth=5; g.beginPath(); g.moveTo(0,y-9); g.lineTo(512,y-9); g.stroke(); g.beginPath(); g.moveTo(0,y+9); g.lineTo(512,y+9); g.stroke(); } // 절곡(V) 띠
+    const t=new THREE.CanvasTexture(c); t.wrapS=THREE.RepeatWrapping; t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8; return t; })();
+  const fm=new THREE.MeshStandardMaterial({map:tex,transparent:true,alphaTest:.35,side:THREE.DoubleSide,roughness:.5,metalness:.3});
+  const postG=new THREE.CylinderGeometry(.04,.04,2.05,10), capG=new THREE.SphereGeometry(.055,10,6), pm=new THREE.MeshStandardMaterial({color:0x4fae43,roughness:.45,metalness:.35});
+  const posts=[]; const pts=CTX.site;
+  const isGate=(p,q)=>Math.hypot(p[0]-GATE.a[0],p[1]-GATE.a[1])+Math.hypot(q[0]-GATE.b[0],q[1]-GATE.b[1])<1.5 || Math.hypot(p[0]-GATE.b[0],p[1]-GATE.b[1])+Math.hypot(q[0]-GATE.a[0],q[1]-GATE.a[1])<1.5;
+  for(let i=1;i<pts.length;i++){ const [x0,y0]=pts[i-1],[x1,y1]=pts[i], len=Math.hypot(x1-x0,y1-y0); if(len<.3||isGate(pts[i-1],pts[i])) continue;
+    const t=tex.clone(); t.needsUpdate=true; t.repeat.set(len/2.5,1); const m=new THREE.Mesh(new THREE.PlaneGeometry(len,1.8),fm.clone()); m.material.map=t;
+    m.position.set((x0+x1)/2,.12+.9,-(y0+y1)/2); m.rotation.y=Math.atan2(y1-y0,x1-x0); m.castShadow=true; scene.add(m);
+    const n=Math.max(1,Math.round(len/2.5)); for(let k=0;k<=n;k++) posts.push([x0+(x1-x0)*k/n, y0+(y1-y0)*k/n]); }
+  const P=new THREE.InstancedMesh(postG,pm,posts.length), Cp=new THREE.InstancedMesh(capG,pm,posts.length), mt=new THREE.Matrix4();
+  posts.forEach(([x,y],i)=>{ mt.makeTranslation(x,1.1,-y); P.setMatrixAt(i,mt); mt.makeTranslation(x,2.14,-y); Cp.setMatrixAt(i,mt); });
+  P.castShadow=true; scene.add(P); scene.add(Cp);
+}
 // trees: forest hills, 임야 parcels, 완충녹지
 {
   const near=[],far=[], cx=SITEC[0], cy=SITEC[1];
@@ -897,8 +913,42 @@ for(const b of CTX.bldg){ const sh=new THREE.Shape(b.map(p=>new THREE.Vector2(p[
   };
   truck(FACT[0],50); truck(FACT[1],90);
 }
-// 정문 명판: 진입로가 부지로 들어오는 서측, 진입 도로(북측)를 향하게
-buildNameplate(17.5,59.0,Math.PI);
+// 정문 (LG화학 정문 사진 참고): 진입로 → 대지 내 통로로 연결, 문주·차단기·경비실, 명판은 진입로 좌측 도로변
+{ const at=(x,y,r=0)=>{ const g=new THREE.Group(); g.position.set(x,0,-y); g.rotation.y=r; scene.add(g); return g; };
+  const yel=new THREE.MeshStandardMaterial({color:0xf2c200,roughness:.45}), grey=new THREE.MeshStandardMaterial({color:0xb9bec1,roughness:.7}),
+        dark=new THREE.MeshStandardMaterial({color:0x40464b,roughness:.6}), glass=new THREE.MeshStandardMaterial({color:0x8fb3c4,roughness:.08,metalness:.4,transparent:true,opacity:.65}),
+        conc=new THREE.MeshStandardMaterial({color:0xd0d0c9,roughness:.85});
+  // 문주 2개 (펜스 끝)
+  for(const p of [GATE.a,GATE.b]){ const g=at(p[0],p[1]); box(.7,2.6,.7,M.granite||grey,0,1.3,0,g); box(.85,.15,.85,dark,0,2.66,0,g); }
+  // 차단기 2기 (입·출구 차로) — 대지 내 통로, 정문에서 6 m 안쪽
+  const armTex=(()=>{ const c=document.createElement('canvas'); c.width=256; c.height=16; const g=c.getContext('2d'); for(let i=0;i<8;i++){ g.fillStyle=i%2?'#d8262c':'#ffffff'; g.fillRect(i*32,0,32,16);} const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; return t; })();
+  const armM=new THREE.MeshStandardMaterial({map:armTex,roughness:.5});
+  const BX=27.6;
+  for(const [y,dir] of [[55.9,1],[62.7,-1]]){ const g=at(BX,y,dir>0?Math.PI/2:-Math.PI/2);
+    box(.42,1.05,.42,yel,0,.6,0,g); box(.5,.12,.5,dark,0,1.16,0,g);
+    const arm=new THREE.Mesh(new THREE.BoxGeometry(3.3,.09,.09),armM); arm.position.set(1.85,1.0,0); arm.castShadow=true; g.add(arm); }
+  // 경비실 + 노란 연석 아일랜드 + 정문 사인
+  { const g=at(BX-0.4,51.7,0);
+    box(5.0,.16,4.0,yel,0,.18,0,g); box(4.7,.2,3.7,conc,0,.28,0,g);
+    box(3.2,2.5,2.6,grey,0,1.63,0,g);
+    box(3.0,1.15,.05,glass,0,2.0,-1.31,g,false); box(.05,1.15,2.4,glass,1.61,2.0,0,g,false); box(.05,1.15,2.4,glass,-1.61,2.0,0,g,false);
+    box(.9,2.05,.05,glass,.9,1.4,1.31,g,false);
+    box(4.0,.28,3.4,dark,0,3.02,0,g); box(4.1,.06,3.5,new THREE.MeshStandardMaterial({color:0x8f9599}),0,3.19,0,g,false);
+    const c=document.createElement('canvas'); c.width=512; c.height=160; const x=c.getContext('2d'); x.fillStyle='#1f4fa8'; x.fillRect(0,0,512,160);
+    x.fillStyle='#fff'; x.font='700 104px "Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif'; x.textAlign='center'; x.textBaseline='middle'; x.fillText('정  문',256,86);
+    const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace;
+    const sg=new THREE.Mesh(new THREE.PlaneGeometry(1.6,.5),new THREE.MeshStandardMaterial({map:t,roughness:.5})); sg.position.set(0,3.58,-1.2); sg.rotation.y=Math.PI; g.add(sg);
+    box(1.7,.6,.08,new THREE.MeshStandardMaterial({color:0xe8ecef}),0,3.58,-1.16,g,false); }
+  // 진입 노면: 정지선 + 화살표 (대지 내 통로 입구)
+  const wm=new THREE.MeshStandardMaterial({color:0xf3f3ef,roughness:.6,polygonOffset:true,polygonOffsetFactor:-3});
+  const flatStrip=(x,y,len,w,rot)=>{ const m=new THREE.Mesh(new THREE.PlaneGeometry(len,w),wm); m.rotation.set(-Math.PI/2,0,rot); m.position.set(x,.14,-y); scene.add(m); };
+  flatStrip(BX+1.2,57.6,3.4,.35,Math.PI/2); flatStrip(BX+1.2,61.0,3.4,.35,Math.PI/2);
+  for(const [y,d] of [[57.6,-1],[61.0,1]]){ const x0=BX-4.5; flatStrip(x0,y,2.6,.22,0); const tip=x0+d*1.3;
+    const tri=new THREE.Mesh(new THREE.ShapeGeometry(new THREE.Shape([new THREE.Vector2(0,.55),new THREE.Vector2(0,-.55),new THREE.Vector2(d*.9,0)])),wm);
+    tri.rotation.x=-Math.PI/2; tri.position.set(tip,.142,-y); scene.add(tri); }
+  // 명판: 진입로 좌측(동측) 도로변, 들어오는 차량을 향해 약간 비스듬히 — LG화학 간판 배치처럼
+  buildNameplate(46.4,65.0,-2.86);
+}
 const C=window.__siteCenter;
 sun.target.position.copy(C); sun.position.copy(C).add(new THREE.Vector3(-90,160,110));
 sun.shadow.camera.updateProjectionMatrix();
@@ -910,8 +960,7 @@ const VIEWS={
   aerial:()=>portrait()?{pos:BC.clone().addScaledVector(A.U,-120).addScaledVector(A.V,-20).add(new THREE.Vector3(0,150,0)),tgt:BC.clone().addScaledVector(A.U,-6),fit:1}
                       :{pos:BC.clone().add(new THREE.Vector3(-128,86,90)),tgt:BC.clone().add(new THREE.Vector3(-42,2,-20))},
   silo:()=>({pos:new THREE.Vector3(-34,9,-22).applyMatrix4(A.g.matrix),tgt:new THREE.Vector3(-4,9,13).applyMatrix4(A.g.matrix)}),
-  gate:()=>{ const n=NAMEPLATE.center, f=new THREE.Vector3(-Math.sin(-NAMEPLATE.rot)*0+Math.sin(NAMEPLATE.rot),0,Math.cos(NAMEPLATE.rot));
-    return {pos:n.clone().addScaledVector(f,12).add(new THREE.Vector3(0,2.2,0)).addScaledVector(new THREE.Vector3(f.z,0,-f.x),-8.5),tgt:n.clone().add(new THREE.Vector3(0,.6,0))}; },
+  gate:()=>({pos:new THREE.Vector3(37.2,6.5,-88),tgt:new THREE.Vector3(33.5,1.6,-60)}),
   front:()=>({pos:new THREE.Vector3(-28,9,-9).applyMatrix4(A.g.matrix),tgt:new THREE.Vector3(70,4,-6).applyMatrix4(A.g.matrix)}),
   inside:()=>{ const p=new THREE.Vector3(88,3,7).applyMatrix4(A.g.matrix), t=new THREE.Vector3(20,9,14).applyMatrix4(A.g.matrix); return {pos:p,tgt:t}; },
   interior:()=>{ const t=ANNEX.center.clone().add(new THREE.Vector3(0,ann.cur*FH+0.5,0));
