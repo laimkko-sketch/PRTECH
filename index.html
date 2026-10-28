@@ -203,7 +203,7 @@ function nameplateTex(){
   g.fillStyle='#b8871b'; g.fillRect(1260,110,4,420);
   g.fillStyle='#f4f1ea'; let fs=150; do{ g.font=`700 ${fs}px "Malgun Gothic","Apple SD Gothic Neo",sans-serif`; fs-=4; } while(g.measureText('(주)피알테크').width>640); g.fillText('(주)피알테크',1330,320);
   g.font='italic 900 92px "Arial Black","Arial",sans-serif'; g.fillStyle='#e1262c'; g.fillText('PR TECH',1335,460);
-  g.font='400 40px "Arial",sans-serif'; g.fillStyle='#c9c4b8'; g.fillText('DECO TILE · LVT · SPC',1340,535);
+  g.font='400 40px "Arial",sans-serif'; g.fillStyle='#c9c4b8'; g.fillText('DECO TILE · LVT · LLT',1340,535);
   const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8; return t;
 }
 function siloLabelTex(name,sub){
