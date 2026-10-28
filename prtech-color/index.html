@@ -648,10 +648,10 @@ CTX.voids.forEach(p=>flat(p,0x7f9a52,.015));
 {
   const asphaltTex=canvasTex((g,w,h)=>{ g.fillStyle='#ffffff'; g.fillRect(0,0,w,h); for(let i=0;i<3000;i++){ const v=190+(hash(i,7)*65|0); g.fillStyle=`rgb(${v},${v},${v})`; g.fillRect(hash(i,1)*w,hash(i,2)*h,2,2); } });
   asphaltTex.repeat.set(.15,.15);
-  CTX.roads.forEach(p=>flat(p,0x464b50,.08,asphaltTex));
+  CTX.roads.forEach(p=>flat(p,0x34383c,.08,asphaltTex));
   const Y=.097, W=new THREE.MeshStandardMaterial({color:0xf3f3ef,roughness:.6,polygonOffset:true,polygonOffsetFactor:-2}),
         YL=new THREE.MeshStandardMaterial({color:0xf0b40c,roughness:.6,polygonOffset:true,polygonOffsetFactor:-2}),
-        CB=new THREE.MeshStandardMaterial({color:0xc4c4bd,roughness:.85});
+        CB=new THREE.MeshStandardMaterial({color:0xd6d6cf,roughness:.85}), SW=new THREE.MeshStandardMaterial({color:0xb79a8c,roughness:.9});
   const strip=(a,b,w,mat)=>{ const dx=b[0]-a[0],dy=b[1]-a[1],len=Math.hypot(dx,dy); if(len<.05) return; const m=new THREE.Mesh(new THREE.PlaneGeometry(len,w),mat);
     m.rotation.set(-Math.PI/2,0,Math.atan2(dy,dx)); m.position.set((a[0]+b[0])/2,Y,-(a[1]+b[1])/2); m.receiveShadow=true; scene.add(m); };
   const inRoad=(x,y)=>CTX.roads.some(r=>inPoly(x,y,r.o));
@@ -660,14 +660,17 @@ CTX.voids.forEach(p=>flat(p,0x7f9a52,.015));
   for(const e of ROADS.edges){
     // inward side = the side that lies inside a road polygon
     const a=e[0],b=e[1],dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy), mx=(a[0]+b[0])/2, my=(a[1]+b[1])/2, s=inRoad(mx-dy/l*1.5,my+dx/l*1.5)?1:-1;
-    const line=offsetLine(e,.45*s); for(let i=1;i<line.length;i++) strip(line[i-1],line[i],.18,W);
+    const line=offsetLine(e,.5*s); for(let i=1;i<line.length;i++) strip(line[i-1],line[i],.3,W);
+    const walk=offsetLine(e,-1.2*s);
+    for(let i=1;i<walk.length;i++){ const p=walk[i-1],q=walk[i],len=Math.hypot(q[0]-p[0],q[1]-p[1]); const m=new THREE.Mesh(new THREE.BoxGeometry(len,.14,1.8),SW);
+      m.rotation.y=Math.atan2(q[1]-p[1],q[0]-p[0]); m.position.set((p[0]+q[0])/2,.15,-(p[1]+q[1])/2); m.receiveShadow=true; scene.add(m); }
     const curb=offsetLine(e,-.15*s);
-    for(let i=1;i<curb.length;i++){ const p=curb[i-1],q=curb[i],len=Math.hypot(q[0]-p[0],q[1]-p[1]); const m=new THREE.Mesh(new THREE.BoxGeometry(len,.18,.25),CB);
+    for(let i=1;i<curb.length;i++){ const p=curb[i-1],q=curb[i],len=Math.hypot(q[0]-p[0],q[1]-p[1]); const m=new THREE.Mesh(new THREE.BoxGeometry(len,.24,.3),CB);
       m.rotation.y=Math.atan2(q[1]-p[1],q[0]-p[0]); m.position.set((p[0]+q[0])/2,.09,-(p[1]+q[1])/2); m.castShadow=m.receiveShadow=true; scene.add(m); }
   }
   for(const c of ROADS.centers){
-    if(c.t==='double'){ for(const d of [-.2,.2]){ const l=offsetLine(c.p,d); strip(l[0],l[1],.15,YL); } for(const d of [-3.6,3.6]) dashed(offsetLine(c.p,d),.15,W,5,8); }
-    else dashed(c.p,.15,YL,3,5);
+    for(const d of [-.22,.22]) dashed(offsetLine(c.p,d),.22,YL,4,0); // 황색 복선 중앙선(횡단보도 구간은 끊김)
+    if(c.t==='double') for(const d of [-3.7,3.7]) dashed(offsetLine(c.p,d),.22,W,5,8);
   }
   for(const c of ROADS.cross){ const ax=Math.cos(c.a),ay=Math.sin(c.a),nx=-ay,ny=ax;
     for(let s=-c.w/2+.5;s<=c.w/2-.4;s+=.9){ const cx=c.c[0]+nx*s, cy=c.c[1]+ny*s; strip([cx-ax*1.5,cy-ay*1.5],[cx+ax*1.5,cy+ay*1.5],.45,W); }
