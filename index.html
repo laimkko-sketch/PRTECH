@@ -137,6 +137,7 @@ dd{font-variant-numeric:tabular-nums;line-height:1.45}
   <button type="button" data-view="inside">내부·크레인</button>
   <button type="button" data-view="silo">사일로</button>
   <button type="button" data-view="gate">정문</button>
+  <button type="button" data-view="entry">입구에서 보기</button>
   <button type="button" data-view="annex">부1동</button>
   <button type="button" data-view="interior">부1동 내부</button>
 </div>
@@ -458,8 +459,8 @@ function buildSilos(f){
 }
 
 /* ---------- 정문 명판 (진입로 측) ---------- */
-function buildNameplate(x,y,rot){
-  const g=new THREE.Group(); g.position.set(x,0,-y); g.rotation.y=rot; scene.add(g);
+function buildNameplate(x,y,rot,sc=1){
+  const g=new THREE.Group(); g.position.set(x,0,-y); g.rotation.y=rot; g.scale.setScalar(sc); scene.add(g);
   box(8.0,0.35,1.8,M.granite,0,0.175,0,g);
   box(7.2,2.7,0.7,M.granite,0,1.7,0,g);
   box(7.5,0.18,0.9,M.band,0,3.14,0,g);
@@ -469,7 +470,7 @@ function buildNameplate(x,y,rot){
   for(const s of [1,-1]){ box(8.0,0.45,0.9,M.granite,0,0.22,s*1.5,g);
     for(let i=0;i<7;i++){ const b=new THREE.Mesh(new THREE.IcosahedronGeometry(.45,1),hedge); b.position.set(-3.3+i*1.1,0.75,s*1.5); b.scale.set(1.2,.8,1); b.castShadow=true; g.add(b); } }
   for(const s of [-1,1]){ const l=new THREE.Mesh(new THREE.BoxGeometry(.25,.25,.25),new THREE.MeshStandardMaterial({color:0xfff2c8,emissive:0xffe2a0,emissiveIntensity:.6})); l.position.set(s*2.6,0.55,1.5); g.add(l); }
-  NAMEPLATE.center=new THREE.Vector3(x,1.6,-y); NAMEPLATE.rot=rot;
+  NAMEPLATE.center=new THREE.Vector3(x,1.6*sc,-y); NAMEPLATE.rot=rot;
 }
 const NAMEPLATE={};
 
@@ -827,7 +828,9 @@ const GATE={a:[31.0,63.6], b:[38.0,55.9]};   // 배치도: 동측 진입로가 �
   const fm=new THREE.MeshStandardMaterial({map:tex,transparent:true,alphaTest:.35,side:THREE.DoubleSide,roughness:.5,metalness:.3});
   const postG=new THREE.CylinderGeometry(.04,.04,2.05,10), capG=new THREE.SphereGeometry(.055,10,6), pm=new THREE.MeshStandardMaterial({color:0x4fae43,roughness:.45,metalness:.35});
   const posts=[]; const pts=CTX.site;
-  const isGate=(p,q)=>Math.hypot(p[0]-GATE.a[0],p[1]-GATE.a[1])+Math.hypot(q[0]-GATE.b[0],q[1]-GATE.b[1])<1.5 || Math.hypot(p[0]-GATE.b[0],p[1]-GATE.b[1])+Math.hypot(q[0]-GATE.a[0],q[1]-GATE.a[1])<1.5;
+  const OPEN=[[[22.0,63.3],[31.0,63.6]]]; // 통로 북측 구간: 펜스 없음
+  const isOpen=(p,q)=>OPEN.some(([a,b])=>Math.hypot(p[0]-a[0],p[1]-a[1])+Math.hypot(q[0]-b[0],q[1]-b[1])<1.5||Math.hypot(p[0]-b[0],p[1]-b[1])+Math.hypot(q[0]-a[0],q[1]-a[1])<1.5);
+  const isGate=(p,q)=>isOpen(p,q)||Math.hypot(p[0]-GATE.a[0],p[1]-GATE.a[1])+Math.hypot(q[0]-GATE.b[0],q[1]-GATE.b[1])<1.5 || Math.hypot(p[0]-GATE.b[0],p[1]-GATE.b[1])+Math.hypot(q[0]-GATE.a[0],q[1]-GATE.a[1])<1.5;
   for(let i=1;i<pts.length;i++){ const [x0,y0]=pts[i-1],[x1,y1]=pts[i], len=Math.hypot(x1-x0,y1-y0); if(len<.3||isGate(pts[i-1],pts[i])) continue;
     const t=tex.clone(); t.needsUpdate=true; t.repeat.set(len/2.5,1); const m=new THREE.Mesh(new THREE.PlaneGeometry(len,1.8),fm.clone()); m.material.map=t;
     m.position.set((x0+x1)/2,.12+.9,-(y0+y1)/2); m.rotation.y=Math.atan2(y1-y0,x1-x0); m.castShadow=true; scene.add(m);
@@ -928,7 +931,7 @@ const GATE={a:[31.0,63.6], b:[38.0,55.9]};   // 배치도: 동측 진입로가 �
     box(.42,1.05,.42,yel,0,.6,0,g); box(.5,.12,.5,dark,0,1.16,0,g);
     const arm=new THREE.Mesh(new THREE.BoxGeometry(3.3,.09,.09),armM); arm.position.set(1.85,1.0,0); arm.castShadow=true; g.add(arm); }
   // 경비실 + 노란 연석 아일랜드 + 정문 사인
-  { const g=at(BX-0.4,51.7,0);
+  { const g=at(25.8,68.6,-Math.PI/2);
     box(5.0,.16,4.0,yel,0,.18,0,g); box(4.7,.2,3.7,conc,0,.28,0,g);
     box(3.2,2.5,2.6,grey,0,1.63,0,g);
     box(3.0,1.15,.05,glass,0,2.0,-1.31,g,false); box(.05,1.15,2.4,glass,1.61,2.0,0,g,false); box(.05,1.15,2.4,glass,-1.61,2.0,0,g,false);
@@ -947,7 +950,7 @@ const GATE={a:[31.0,63.6], b:[38.0,55.9]};   // 배치도: 동측 진입로가 �
     const tri=new THREE.Mesh(new THREE.ShapeGeometry(new THREE.Shape([new THREE.Vector2(0,.55),new THREE.Vector2(0,-.55),new THREE.Vector2(d*.9,0)])),wm);
     tri.rotation.x=-Math.PI/2; tri.position.set(tip,.142,-y); scene.add(tri); }
   // 명판: 진입로 좌측(동측) 도로변, 들어오는 차량을 향해 약간 비스듬히 — LG화학 간판 배치처럼
-  buildNameplate(46.4,65.0,-2.86);
+  buildNameplate(44.75,55.2,2.75,2/3);   // 정문 동측 펜스 바로 바깥, 펜스와 나란히
 }
 const C=window.__siteCenter;
 sun.target.position.copy(C); sun.position.copy(C).add(new THREE.Vector3(-90,160,110));
@@ -961,6 +964,7 @@ const VIEWS={
                       :{pos:BC.clone().add(new THREE.Vector3(-128,86,90)),tgt:BC.clone().add(new THREE.Vector3(-42,2,-20))},
   silo:()=>({pos:new THREE.Vector3(-34,9,-22).applyMatrix4(A.g.matrix),tgt:new THREE.Vector3(-4,9,13).applyMatrix4(A.g.matrix)}),
   gate:()=>({pos:new THREE.Vector3(37.2,6.5,-88),tgt:new THREE.Vector3(33.5,1.6,-60)}),
+  entry:()=>({pos:new THREE.Vector3(36.5,3.4,-67.5),tgt:new THREE.Vector3(-14,3.0,-44)}),
   front:()=>({pos:new THREE.Vector3(-28,9,-9).applyMatrix4(A.g.matrix),tgt:new THREE.Vector3(70,4,-6).applyMatrix4(A.g.matrix)}),
   inside:()=>{ const p=new THREE.Vector3(88,3,7).applyMatrix4(A.g.matrix), t=new THREE.Vector3(20,9,14).applyMatrix4(A.g.matrix); return {pos:p,tgt:t}; },
   interior:()=>{ const t=ANNEX.center.clone().add(new THREE.Vector3(0,ann.cur*FH+0.5,0));
