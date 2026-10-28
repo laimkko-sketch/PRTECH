@@ -114,9 +114,11 @@ dd{font-variant-numeric:tabular-nums;line-height:1.45}
     <div><dt>주동 (2개 동)</dt><dd><span class="num">150.0 × 25.0 m</span> · 동당 <span class="num">3,750 m²</span><br>X1–X31 @5 m, Y1–Y6 @5 m</dd></div>
     <div><dt>높이</dt><dd>처마 <span class="num">11.0</span> / 최고 <span class="num">13.6 m</span><br>X1–X4 구간 처마 <span class="num">15.0</span> / 최고 <span class="num">17.6 m</span></dd></div>
     <div><dt>외장</dt><dd>T125 내화판넬 벽체, T225 내화판넬 지붕, 박공지붕</dd></div>
-    <div><dt>크레인</dt><dd>동당 4대: <span class="num">3t ×2, 2t ×2</span></dd></div>
+    <div><dt>크레인</dt><dd>동당 4대: <span class="num">3t ×2, 2t ×2</span> (노란색)</dd></div>
     <div><dt>개구부</dt><dd>행가도어 <span class="num">5.0 × 5.0 m</span> 2개소, 하이샤시 창호 2단</dd></div>
-    <div><dt>회사·브랜드</dt><dd>PR TECH · 브랜드 BIDAN (지붕 로고)</dd></div>
+    <div><dt>회사·브랜드</dt><dd>PR TECH · 브랜드 VIDAN 비단<br>지붕 로고 · 정문 명판</dd></div>
+    <div><dt>내부 바닥</dt><dd>녹색 에폭시, 노란색 안전통로 라인</dd></div>
+    <div><dt>원료 사일로</dt><dd><span class="num">160 m³ × 3기</span> · 경탄 / PVC / 가소제<br>주동(북측) X1 고층부 외측</dd></div>
     <div><dt>부1동</dt><dd><span class="num">23.0 × 11.0 m</span>, 지상 3층<br>1층 식당·주방·접견실 / 2층 사무실·휴게실 / 3층 회의실·방 5실·샤워장</dd></div>
   </dl>
   <div class="ctrls">
@@ -125,13 +127,15 @@ dd{font-variant-numeric:tabular-nums;line-height:1.45}
     <label><input type="checkbox" id="tCrane" checked>크레인</label>
     <label><input type="checkbox" id="tLabel" checked>라벨</label>
   </div>
-  <p class="note">주1동·주2동은 배치도에 동 번호가 없어 북측·남측으로 표시했습니다. 부1동은 입면도가 없어 층고 3.6 m를 가정했고, 내부 가구는 실 용도에 맞춰 임의로 배치했습니다. 필지·지목·도로·완충녹지·인접 건물은 배치도 기준이고, 산·수목·논밭 무늬·차량은 이미지 연출용으로 임의 배치했습니다.</p>
+  <p class="note">주1동·주2동은 배치도에 동 번호가 없어 북측·남측으로 표시했습니다. 부1동은 입면도가 없어 층고 3.6 m를 가정했고, 내부 가구는 실 용도에 맞춰 임의로 배치했습니다. 필지·지목·도로·완충녹지·인접 건물은 배치도 기준이고, 산·수목·논밭 무늬·차량은 이미지 연출용으로 임의 배치했습니다. 사일로(Ø4.6 × 9.8 m, 약 163 m³)와 정문 명판은 도면에 없어 위치를 임의로 정했고, VIDAN 로고는 정식 로고가 나오기 전 임시 디자인입니다.</p>
 </details>
 
 <div class="views" role="group" aria-label="시점">
   <button type="button" data-view="aerial" aria-pressed="true">전체 조감</button>
   <button type="button" data-view="front">행가도어 마당</button>
   <button type="button" data-view="inside">내부·크레인</button>
+  <button type="button" data-view="silo">사일로</button>
+  <button type="button" data-view="gate">정문 명판</button>
   <button type="button" data-view="annex">부1동</button>
   <button type="button" data-view="interior">부1동 내부</button>
 </div>
@@ -156,7 +160,7 @@ const O = {x:460000, y:640000};
 const P = (X,Y) => new THREE.Vector3((X-O.x)/1000, 0, -(Y-O.y)/1000);
 const FACT = [
   {name:'주동 (북측)', p0:[395472,679721], pu:[535724,626530], pv:[404338,703097], ysouth:true, logoKind:'prtech'},
-  {name:'주동 (남측)', p0:[528263,610108], pu:[388011,663300], pv:[519398,586733], ysouth:false, logoKind:'bidan'},
+  {name:'주동 (남측)', p0:[528263,610108], pu:[388011,663300], pv:[519398,586733], ysouth:false, logoKind:'vidan'},
 ];
 const ANNEX = {name:'부1동', p0:[494319,684091], dir:[21199,-8896]};
 const L=150, W=25, TALL=15;
@@ -166,14 +170,50 @@ function logoTex(kind){
     g.font='italic 900 300px "Arial Black","Arial",sans-serif'; g.textBaseline='middle'; g.textAlign='center';
     g.lineWidth=18; g.strokeStyle='rgba(255,255,255,.92)'; g.strokeText('PR TECH',1200,200); g.fillStyle='#e1262c'; g.fillText('PR TECH',1200,200);
   } else {
-    // BIDAN: original silk-ribbon mark + wordmark
-    const bands=[['#14306b',0],['#1a8f9c',46],['#d4a62a',92]];
-    for(const [col,o] of bands){ g.beginPath(); g.moveTo(120,250-o*.6); g.bezierCurveTo(260,40-o*.6,380,360-o*.6,560,120-o*.6);
-      g.lineWidth=40; g.strokeStyle='rgba(255,255,255,.95)'; g.lineCap='round'; g.stroke(); g.lineWidth=28; g.strokeStyle=col; g.stroke(); }
-    g.font='900 270px "Arial Black","Arial",sans-serif'; g.textBaseline='middle'; g.textAlign='left';
-    g.lineWidth=16; g.strokeStyle='rgba(255,255,255,.92)'; g.strokeText('BIDAN',640,200); g.fillStyle='#14306b'; g.fillText('BIDAN',640,200);
+    // VIDAN 비단: silk-thread "V" mark + wordmark (임의 디자인 — 공식 로고 확정 전)
+    drawVidanMark(g,90,40,300,true);
+    g.textBaseline='middle'; g.textAlign='left';
+    g.font='800 250px "Arial Black","Arial",sans-serif';
+    g.lineWidth=18; g.strokeStyle='rgba(255,255,255,.95)'; g.strokeText('VIDAN',450,180); g.fillStyle='#14306b'; g.fillText('VIDAN',450,180);
+    const vw=g.measureText('VIDAN').width;
+    g.font='700 150px "Malgun Gothic","Apple SD Gothic Neo",sans-serif';
+    g.lineWidth=14; g.strokeText('비단',490+vw,200); g.fillStyle='#b8871b'; g.fillText('비단',490+vw,200);
   }
   const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8; return t;
+}
+// silk threads woven into a "V": navy → teal → gold
+function drawVidanMark(g,x,y,s,halo){
+  const cols=['#14306b','#1d4f86','#1a8f9c','#3aa6a0','#d4a62a','#e8c15a'], n=15;
+  const path=(o)=>{ g.beginPath(); g.moveTo(x+o*.2,y+s*.08+o); g.bezierCurveTo(x+s*.28,y+s*.12+o,x+s*.30,y+s*.80+o*.3,x+s*.47,y+s*.95+o*.15);
+    g.bezierCurveTo(x+s*.60,y+s*.82+o*.1,x+s*.70,y+s*.18+o,x+s*1.05,y+s*.02+o*.7); };
+  g.lineCap='round';
+  if(halo){ for(let i=0;i<n;i++){ path(i*s*.026); g.lineWidth=s*.05; g.strokeStyle='rgba(255,255,255,.95)'; g.stroke(); } }
+  for(let i=0;i<n;i++){ const t=i/(n-1), k=Math.min(cols.length-1,Math.floor(t*cols.length)); path(i*s*.026); g.lineWidth=s*.022; g.strokeStyle=cols[k]; g.stroke(); }
+}
+function nameplateTex(){
+  const c=document.createElement('canvas'); c.width=2048; c.height=640; const g=c.getContext('2d');
+  const bg=g.createLinearGradient(0,0,0,640); bg.addColorStop(0,'#2c3136'); bg.addColorStop(1,'#1d2125'); g.fillStyle=bg; g.fillRect(0,0,2048,640);
+  for(let i=0;i<5000;i++){ g.fillStyle=`rgba(255,255,255,${Math.random()*.06})`; g.fillRect(Math.random()*2048,Math.random()*640,2,2); }
+  g.strokeStyle='#b8871b'; g.lineWidth=6; g.strokeRect(24,24,2000,592);
+  drawVidanMark(g,90,120,360,false);
+  g.textBaseline='alphabetic'; g.textAlign='left'; g.fillStyle='#f4f1ea';
+  g.font='800 200px "Arial Black","Arial",sans-serif'; g.fillText('VIDAN',500,330);
+  g.fillStyle='#d8b25a'; g.font='700 96px "Malgun Gothic","Apple SD Gothic Neo",sans-serif'; g.fillText('비단',520,460);
+  g.font='italic 400 44px "Malgun Gothic","Apple SD Gothic Neo",sans-serif'; g.fillStyle='#c9c4b8'; g.fillText('비단길 꽃길만 걷길 바라는 마음',520,540);
+  g.fillStyle='#b8871b'; g.fillRect(1260,110,4,420);
+  g.fillStyle='#f4f1ea'; let fs=150; do{ g.font=`700 ${fs}px "Malgun Gothic","Apple SD Gothic Neo",sans-serif`; fs-=4; } while(g.measureText('(주)피알테크').width>640); g.fillText('(주)피알테크',1330,320);
+  g.font='italic 900 92px "Arial Black","Arial",sans-serif'; g.fillStyle='#e1262c'; g.fillText('PR TECH',1335,460);
+  g.font='400 40px "Arial",sans-serif'; g.fillStyle='#c9c4b8'; g.fillText('DECO TILE · LVT · SPC',1340,535);
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8; return t;
+}
+function siloLabelTex(name,sub){
+  const c=document.createElement('canvas'); c.width=1024; c.height=256; const g=c.getContext('2d');
+  g.fillStyle='#1f4e8c'; g.fillRect(0,0,1024,256); g.fillStyle='#ffffff'; g.fillRect(0,14,1024,6); g.fillRect(0,236,1024,6);
+  g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#ffffff';
+  g.font='700 108px "Malgun Gothic","Apple SD Gothic Neo",sans-serif'; g.fillText(name,512,108);
+  g.font='500 46px "Arial",sans-serif'; g.fillStyle='#d6e4f5'; g.fillText(sub,512,192);
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8;
+  t.wrapS=THREE.RepeatWrapping; t.repeat.x=-1; return t; // 주동 좌표계가 거울 기저라 좌우 반전 보정
 }
 const EAVE=11.0, RIDGE=13.6, EAVE_T=15.0, RIDGE_T=17.6;
 const WIN_U=[7.55,17.55,27.55,47.55,57.55,67.55,82.55,92.55,112.55,122.55,132.55,142.55];
@@ -198,7 +238,7 @@ stage.appendChild(renderer.domElement);
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(42, 1, 0.5, 5000);
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true; controls.maxPolarAngle = Math.PI*0.495; controls.minDistance = 4; controls.maxDistance = 1400;
+controls.enableDamping = true; controls.maxPolarAngle = Math.PI*0.495; controls.minDistance = 4; controls.maxDistance = 420;
 
 const hemi = new THREE.HemisphereLight(0xe3f0ff, 0x6f7a52, 1.05); scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xfff1dc, 2.5);
@@ -229,8 +269,13 @@ const M = {
   frame:new THREE.MeshStandardMaterial({color:0xa8b0b4,roughness:.5,metalness:.5}),
   door:new THREE.MeshStandardMaterial({map:doorTex,color:0x6f7a80,roughness:.6,metalness:.4}),
   steel:new THREE.MeshStandardMaterial({roughness:.6,metalness:.4}),
-  slab:new THREE.MeshStandardMaterial({color:0xb7b6ae,roughness:.95}),
-  crane:new THREE.MeshStandardMaterial({color:0xe2a20b,roughness:.5,metalness:.3}),
+  slab:new THREE.MeshStandardMaterial({color:0x2f8a57,roughness:.28,metalness:.08}),   // 녹색 에폭시
+  epoxyLine:new THREE.MeshStandardMaterial({color:0xf2c200,roughness:.35}),
+  crane:new THREE.MeshStandardMaterial({color:0xf7c600,emissive:0x5a4600,roughness:.45,metalness:.2}),  // 크레인 노란색
+  silo:new THREE.MeshStandardMaterial({color:0xe9edef,roughness:.35,metalness:.55}),
+  siloBand:new THREE.MeshStandardMaterial({color:0x1f4e8c,roughness:.45,metalness:.3}),
+  rail:new THREE.MeshStandardMaterial({color:0xf2c200,roughness:.5,metalness:.3}),
+  granite:new THREE.MeshStandardMaterial({color:0xbdb9b0,roughness:.55,metalness:.05}),
   hook:new THREE.MeshStandardMaterial({color:0x2a2f33,roughness:.5,metalness:.6}),
   ground:new THREE.MeshStandardMaterial({roughness:1}),
   pad:new THREE.MeshStandardMaterial({roughness:.95}),
@@ -245,7 +290,7 @@ const wallMats=[M.wall,M.roof];
 function applyTheme(){ /* the 3D world keeps one daylight palette in both UI themes */
   scene.background = new THREE.Color(0xcfe2f1);
   scene.fog = new THREE.Fog(0xcfe2f1, 700, 2300);
-  M.pad.color.set(0xc4c4be); M.steel.color.set(0x5e6a73); M.crane.color.set(0xe2a20b);
+  M.pad.color.set(0xc4c4be); M.steel.color.set(0x5e6a73); M.crane.color.set(0xf7c600);
 }
 
 /* ---------- helpers ---------- */
@@ -282,6 +327,10 @@ function buildFactory(f){
   const t=0.15;
 
   box(L,0.2,W,M.slab,L/2,0.1,W/2,g,false);
+  // 에폭시 바닥 안전통로 라인 (노란색) — 통로 폭 3 m 양측
+  for(const z of [5.0,8.0,17.0,20.0]) box(L-1.2,0.012,0.12,M.epoxyLine,L/2,0.206,z,g,false);
+  for(const u of DOOR_U) for(const s of [-1,1]) box(0.12,0.012,5.0,M.epoxyLine,u+s*3.0,0.206,2.5,g,false);
+  for(let u=TALL+2;u<L-4;u+=12){ for(const z of [6.5,18.5]) box(1.6,0.012,0.35,M.epoxyLine,u,0.207,z,g,false); }
 
   // long walls (v=0 is Y1 side with hanger doors, v=25 is Y6 side)
   for(const z of [t/2, W-t/2]){
@@ -344,6 +393,9 @@ function buildFactory(f){
       const m=box(0.25,0.55,len,M.steel,u,((e-0.3)+(r-0.5))/2,(zA+zB)/2,g); m.rotation.x=-Math.atan2(dy,dz);
     }
   }
+  // 고천장 LED 투광등 (용마루 하부)
+  const bay=new THREE.MeshStandardMaterial({color:0xffffff,emissive:0xfff6e0,emissiveIntensity:1.2});
+  for(let u=10;u<L;u+=10) for(const z of [8,17]){ const m=new THREE.Mesh(new THREE.CylinderGeometry(.35,.45,.3,16),bay); m.position.set(u,10.2,z); g.add(m); }
   // crane runway girders and bridge cranes
   const run=new THREE.Group(); g.add(run); cranes.push(run);
   for(const z of [0.95,W-0.95]) box(L-1,0.6,0.35,M.steel,L/2,8.4,z,run);
@@ -360,6 +412,64 @@ function buildFactory(f){
   labels.push({el:mk('lbl crane','X1'),pos:()=>new THREE.Vector3(0,RIDGE_T+2.5,W/2).applyMatrix4(g.matrix),grp:'crane'});
   f.g=g; f.center=new THREE.Vector3(L/2,0,W/2).applyMatrix4(g.matrix); f.U=U; f.V=V;
 }
+
+/* ---------- 원료 사일로 3기 (160 m³) — 주동(북측) X1 고층부 외측 ---------- */
+/* 원통 Ø4.6 × 9.8 m (≈163 m³) + 하부 호퍼 콘, 레그 4.2 m, 상부 연결 점검대·사다리·이송배관. 위치는 배치도에 없어 임의 배치 */
+const SILOS=[{n:'경탄',s:'CaCO₃  ·  160 m³',v:4.5},{n:'PVC',s:'PVC RESIN  ·  160 m³',v:12.5},{n:'가소제',s:'PLASTICIZER  ·  160 m³',v:20.5}];
+function buildSilos(f){
+  const g=new THREE.Group(); g.matrixAutoUpdate=false; g.matrix.copy(f.g.matrix); world.add(g);
+  const R=2.3, LEG=4.2, CONE=3.0, CYL=9.8, U0=-6.2, TOP=LEG+CONE+CYL;
+  const mesh=(geo,mat,x,y,z,sh=true)=>{ const m=new THREE.Mesh(geo,mat); m.position.set(x,y,z); m.castShadow=sh; m.receiveShadow=true; g.add(m); return m; };
+  box(7.2,0.5,W-1,M.slab.clone(),U0,0.25,W/2,g,false).material.color.set(0xb9b8b1); // 기초 패드
+  for(const s of SILOS){
+    const z=s.v;
+    for(const [a,b] of [[-1,-1],[1,-1],[-1,1],[1,1]]) box(0.3,LEG+0.6,0.3,M.steel,U0+a*R*.7,(LEG+0.6)/2,z+b*R*.7,g);
+    for(const a of [-1,1]){ box(R*1.4,0.18,0.18,M.steel,U0,LEG*.55,z+a*R*.7,g); box(0.18,0.18,R*1.4,M.steel,U0+a*R*.7,LEG*.55,z,g); }
+    mesh(new THREE.CylinderGeometry(R,0.32,CONE,32),M.silo,U0,LEG+CONE/2,z);
+    mesh(new THREE.CylinderGeometry(R,R,CYL,40),M.silo,U0,LEG+CONE+CYL/2,z);
+    mesh(new THREE.ConeGeometry(R+0.06,0.75,40),M.silo,U0,TOP+0.37,z);
+    mesh(new THREE.CylinderGeometry(0.28,0.28,0.6,16),M.steel,U0,LEG-0.3,z); // 로터리 밸브
+    for(const y of [LEG+CONE+1.2,LEG+CONE+4.4,LEG+CONE+7.6]) mesh(new THREE.CylinderGeometry(R+0.05,R+0.05,0.16,40,1,true),M.siloBand,U0,y,z,false);
+    mesh(new THREE.CylinderGeometry(R+0.05,R+0.05,0.5,40,1,true),M.siloBand,U0,TOP-0.3,z,false);
+    // 명칭 라벨: 바깥(-u)·남서 방향을 향하는 곡면 띠
+    const lab=new THREE.Mesh(new THREE.CylinderGeometry(R+0.04,R+0.04,1.45,40,1,true,Math.PI*1.02,Math.PI*0.62),
+      new THREE.MeshStandardMaterial({map:siloLabelTex(s.n,s.s),roughness:.5}));
+    lab.position.set(U0,LEG+CONE+6.0,z); g.add(lab);
+    mesh(new THREE.CylinderGeometry(0.2,0.2,0.6,12),M.steel,U0+0.9,TOP+0.75,z); // 벤트 필터
+    // 공기이송 배관: 사일로 상부 → 주동 X1 박공벽
+    const pz=z+(z<W/2?0.8:-0.8);
+    box(0.16,1.2,0.16,M.frame,U0+1.2,TOP+0.5,pz,g); box(-U0-1.0,0.16,0.16,M.frame,(U0+1.2-0.2)/2,TOP+1.1,pz,g);
+    box(0.16,TOP+1.1-13.2,0.16,M.frame,-0.25,(TOP+1.1+13.2)/2,pz,g);
+    labels.push({el:mk('lbl crane',`SILO ${s.n}`),pos:()=>new THREE.Vector3(U0,TOP+2.6,z).applyMatrix4(g.matrix),grp:'silo'});
+  }
+  // 상부 연결 점검대 + 안전난간
+  box(2.0,0.15,SILOS[2].v-SILOS[0].v+R*2,M.steel,U0,TOP+0.85,W/2,g);
+  for(const a of [-1,1]){ box(0.06,0.06,SILOS[2].v-SILOS[0].v+R*2,M.rail,U0+a*1.0,TOP+1.95,W/2,g,false); box(0.05,0.05,SILOS[2].v-SILOS[0].v+R*2,M.rail,U0+a*1.0,TOP+1.4,W/2,g,false);
+    for(let z=SILOS[0].v-R;z<=SILOS[2].v+R+.01;z+=1.5) box(0.06,1.1,0.06,M.rail,U0+a*1.0,TOP+1.45,z,g,false); }
+  // 수직 사다리 + 등받이 케이지 (남측 사일로)
+  const lz=SILOS[0].v-R-0.35;
+  for(const a of [-0.25,0.25]) box(0.06,TOP+0.9-LEG,0.06,M.rail,U0+a,LEG+(TOP+0.9-LEG)/2,lz,g,false);
+  for(let y=LEG+0.3;y<TOP+0.9;y+=0.3) box(0.5,0.035,0.035,M.rail,U0,y,lz,g,false);
+  for(let y=LEG+2.4;y<TOP+0.9;y+=0.9) box(0.9,0.05,0.05,M.rail,U0,y,lz-0.7,g,false);
+  for(const a of [-0.45,0,0.45]) box(0.05,TOP+0.9-LEG-2.4,0.05,M.rail,U0+a,LEG+2.4+(TOP+0.9-LEG-2.4)/2,lz-0.7,g,false);
+  f.siloAt=new THREE.Vector3(U0,0,W/2).applyMatrix4(g.matrix);
+}
+
+/* ---------- 정문 명판 (진입로 측) ---------- */
+function buildNameplate(x,y,rot){
+  const g=new THREE.Group(); g.position.set(x,0,-y); g.rotation.y=rot; scene.add(g);
+  box(8.0,0.35,1.8,M.granite,0,0.175,0,g);
+  box(7.2,2.7,0.7,M.granite,0,1.7,0,g);
+  box(7.5,0.18,0.9,M.band,0,3.14,0,g);
+  const mat=new THREE.MeshStandardMaterial({map:nameplateTex(),roughness:.3,metalness:.15});
+  for(const s of [1,-1]){ const p=new THREE.Mesh(new THREE.PlaneGeometry(6.8,2.12),mat); p.position.set(0,1.72,s*0.356); if(s<0) p.rotation.y=Math.PI; g.add(p); }
+  const hedge=new THREE.MeshStandardMaterial({color:0x3f7a35,roughness:.9,flatShading:true});
+  for(const s of [1,-1]){ box(8.0,0.45,0.9,M.granite,0,0.22,s*1.5,g);
+    for(let i=0;i<7;i++){ const b=new THREE.Mesh(new THREE.IcosahedronGeometry(.45,1),hedge); b.position.set(-3.3+i*1.1,0.75,s*1.5); b.scale.set(1.2,.8,1); b.castShadow=true; g.add(b); } }
+  for(const s of [-1,1]){ const l=new THREE.Mesh(new THREE.BoxGeometry(.25,.25,.25),new THREE.MeshStandardMaterial({color:0xfff2c8,emissive:0xffe2a0,emissiveIntensity:.6})); l.position.set(s*2.6,0.55,1.5); g.add(l); }
+  NAMEPLATE.center=new THREE.Vector3(x,1.6,-y); NAMEPLATE.rot=rot;
+}
+const NAMEPLATE={};
 
 /* ---------- annex 부1동 ---------- */
 /* Local frame: u = from X1 (west, 방풍실 side), v = from Y1 (south). Grid X 0/3.8/8.6/13.4/18.2/23.0, Y 0/3.5/7.5/11.0 (평면도 S 1/100). */
@@ -535,6 +645,39 @@ function furnish(p,f){
   }
 }
 
+/* --- 바닥 마감 텍스처 (타일 줄눈·마루·카펫타일) : s = 텍스처 1장이 덮는 길이(m) --- */
+function tileTex(base,grout,n,vary,kind){ return canvasTex((g,w,h)=>{ const c=w/n;
+  for(let i=0;i<n;i++) for(let j=0;j<n;j++){ const hh=Math.sin(i*127.1+j*311.7+n*7.3)*43758.5453, k=(hh-Math.floor(hh)-.5)*vary; g.fillStyle=shade(base,k);
+    if(kind==='plank'){ const off=(j%2)*c*1.5; g.fillRect(0,j*c,w,c); continue; } g.fillRect(i*c,j*c,c,c);
+    if(kind==='carpet'){ g.strokeStyle=shade(base,k-.06); g.lineWidth=2; for(let s=4;s<c;s+=7){ g.beginPath(); if((i+j)%2){ g.moveTo(i*c+s,j*c); g.lineTo(i*c+s,j*c+c);} else { g.moveTo(i*c,j*c+s); g.lineTo(i*c+c,j*c+s);} g.stroke(); } } }
+  if(kind==='plank'){ for(let j=0;j<n;j++){ const y=j*c; g.fillStyle=grout; g.fillRect(0,y,w,2); for(let x=(j%3)*w/3*.62;x<w;x+=w/1.6){ g.fillRect(x,y,2,c);} g.strokeStyle='rgba(90,60,30,.12)'; for(let s=0;s<6;s++){ g.beginPath(); g.moveTo(0,y+4+s*c/6); g.lineTo(w,y+5+s*c/6); g.stroke(); } } return; }
+  if(kind==='carpet') return;
+  g.fillStyle=grout; const gw=Math.max(5,c*.045); for(let i=0;i<=n;i++){ g.fillRect(i*c-gw/2,0,gw,h); g.fillRect(0,i*c-gw/2,w,gw); }
+  if(kind==='stone'){ g.globalAlpha=.25; for(let s=0;s<900;s++){ g.fillStyle=Math.random()<.5?'#6b6660':'#fbf8f2'; g.fillRect(Math.random()*w,Math.random()*h,2,2);} g.globalAlpha=1; } }, 512, 512); }
+function shade(hex,k){ const c=new THREE.Color(hex); c.offsetHSL(0,0,k); return '#'+c.getHexString(); }
+const FTEX={
+  tile:{t:tileTex('#e9e4da','#8f877a',4,.06),s:2.4,r:.35},          // 식당 600각 포세린
+  stone:{t:tileTex('#cfc8bb','#a39b8e',3,.05,'stone'),s:2.4,r:.3},  // 홀·복도 800각 화강석
+  wood:{t:tileTex('#c49a68','#8a6440',6,.07,'plank'),s:2.4,r:.55},  // 접견실·방 강마루
+  carpet:{t:tileTex('#7f8a94','#7f8a94',4,.05,'carpet'),s:2.0,r:.95},// 사무실·회의실 500각 카펫타일
+  wet:{t:tileTex('#d7e1e4','#a9b8bd',8,.03),s:2.4,r:.3},             // 화장실·샤워 300각
+  kitchen:{t:tileTex('#d4cbbb','#9d9384',8,.04),s:2.4,r:.6},         // 주방 300각 논슬립
+  dorm:{t:tileTex('#c9a374','#94704a',6,.06,'plank'),s:2.4,r:.55},  // 숙소 강마루
+};
+/* --- 천장 조명기구 (실 용도별) --- */
+const LITE=new THREE.MeshStandardMaterial({color:0xffffff,emissive:0xfff3d6,emissiveIntensity:1.1,roughness:.4});
+const LITE_RIM=new THREE.MeshStandardMaterial({color:0xcfd4d6,roughness:.4,metalness:.6});
+function lights(p,r){ const [u0,u1,v0,v1]=r.r, w=u1-u0, d=v1-v0, y=WH-.03;
+  const grid=(sp,fn)=>{ const nu=Math.max(1,Math.round(w/sp)), nv=Math.max(1,Math.round(d/sp));
+    for(let i=0;i<nu;i++) for(let j=0;j<nv;j++) fn(u0+w*(i+.5)/nu, v0+d*(j+.5)/nv); };
+  if(r.f==='carpet') grid(2.4,(u,v)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(.6,.03,.6),LITE); m.position.set(u,y,v); p.add(m);
+      const fr=new THREE.Mesh(new THREE.BoxGeometry(.64,.02,.64),LITE_RIM); fr.position.set(u,y-.01,v); p.add(fr); });
+  else if(r.f==='tile'&&r.n.startsWith('식당')) grid(3.0,(u,v)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(1.2,.05,.16),LITE); m.position.set(u,y-.4,v); p.add(m);
+      bx(p,.01,.4,.01,0x30363b,u-.5,y-.2,v); bx(p,.01,.4,.01,0x30363b,u+.5,y-.2,v); });
+  else if(r.f==='dorm'||r.f==='wood'){ const g=new THREE.Mesh(new THREE.CylinderGeometry(.32,.36,.07,24),LITE); g.position.set((u0+u1)/2,y-.04,(v0+v1)/2); p.add(g); }
+  else grid(1.8,(u,v)=>{ const m=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,.02,14),LITE); m.position.set(u,y,v); p.add(m);
+      const rim=new THREE.Mesh(new THREE.TorusGeometry(.1,.02,6,16),LITE_RIM); rim.rotation.x=Math.PI/2; rim.position.set(u,y,v); p.add(rim); });
+}
 function buildAnnex(a){
   const g=new THREE.Group(); world.add(g);
   const o=P(...a.p0); const d=new THREE.Vector3(a.dir[0],0,-a.dir[1]).normalize();
@@ -558,8 +701,12 @@ function buildAnnex(a){
   for(let f=0;f<3;f++){
     const fg=new THREE.Group(); fg.position.y=f*FH; fg.visible=false; g.add(fg); ann.floors.push(fg);
     bx(fg,AW+.2,.2,AD+.2,0x9c9a94,AW/2,-.1,AD/2);
-    ROOMS[f].forEach((r,i)=>{ const [u0,u1,v0,v1]=r.r; const fl=new THREE.Mesh(new THREE.BoxGeometry(u1-u0,.02,v1-v0),cm(FLOOR[r.f],{r:.85}));
+    ROOMS[f].forEach((r,i)=>{ const [u0,u1,v0,v1]=r.r; const ft=FTEX[r.f];
+      const mat=new THREE.MeshStandardMaterial({color:0xffffff,map:ft.t.clone(),roughness:ft.r,metalness:0});
+      mat.map.needsUpdate=true; mat.map.repeat.set((u1-u0)/ft.s,(v1-v0)/ft.s);
+      const fl=new THREE.Mesh(new THREE.BoxGeometry(u1-u0,.02,v1-v0),mat);
       fl.position.set((u0+u1)/2,.01+i*.002,(v0+v1)/2); fl.receiveShadow=true; fg.add(fl);
+      lights(fg,r);
       if(!r.nl){ const lp=r.lp||[(u0+u1)/2,(v0+v1)/2]; labels.push({el:mk('lbl room',r.n),pos:()=>new THREE.Vector3(lp[0],f*FH+2.2,lp[1]).applyMatrix4(g.matrix),grp:'room',floor:f}); } });
     perimeter(fg,f);
     for(const w of WALLS[f]) partition(fg,...w);
@@ -578,7 +725,7 @@ function buildAnnex(a){
 const lblRoot=document.getElementById('labels');
 function mk(cls,text){ const e=document.createElement('div'); e.className=cls; e.textContent=text; lblRoot.appendChild(e); return e; }
 
-FACT.forEach(buildFactory); buildAnnex(ANNEX);
+FACT.forEach(buildFactory); buildAnnex(ANNEX); buildSilos(FACT[0]);
 FACT.forEach(f=>f.inv=f.g.matrix.clone().invert());
 
 const CTX={"site":[[-92.6,57.8],[-92.6,57.8],[-71.0,68.4],[-54.5,76.5],[-29.7,95.8],[-29.0,96.3],[-19.4,97.9],[3.0,93.4],[15.3,81.7],[22.0,63.3],[31.0,63.6],[38.0,55.9],[68.2,43.5],[72.8,51.6],[96.8,15.5],[93.5,-8.1],[100.2,-26.9],[100.0,-35.6],[95.7,-57.7],[-18.0,-63.8],[-17.0,-61.8],[-22.9,-53.9],[-24.1,-48.5],[-31.0,-43.6],[-34.8,-32.1],[-42.5,-26.0],[-47.6,-19.0],[-96.8,-12.8],[-105.0,-16.8],[-112.4,-15.1],[-121.4,-15.4],[-160.4,-19.4],[-177.7,-28.6],[-180.1,-28.7],[-181.6,-27.0],[-183.3,-20.5],[-184.6,-15.3],[-182.2,-14.3],[-178.4,-13.0],[-175.7,-12.0],[-173.0,-11.0],[-171.5,-10.4],[-170.4,-10.1],[-167.4,-8.9],[-164.4,-7.8],[-159.6,-5.9],[-153.9,-3.8],[-149.1,-1.9],[-144.4,-0.2],[-143.3,0.2],[-141.8,0.8],[-135.5,3.1],[-128.7,8.3],[-122.1,13.2],[-114.8,18.8],[-107.0,22.5],[-100.8,27.2],[-93.1,33.8],[-86.6,38.4],[-95.1,52.4],[-92.6,57.8]],"band":[{"o":[[-188.2,-35.3],[-189.8,-34.3],[-190.2,-32.8],[-191.7,-31.7],[-191.5,-29.6],[-192.7,-27.8],[-192.4,-26.0],[-193.6,-24.4],[-193.2,-22.3],[-194.5,-20.4],[-193.2,-18.0],[-194.5,-16.0],[-193.2,-13.7],[-194.5,-11.5],[-187.8,-4.9],[-187.0,-5.3],[-186.8,-7.2],[-185.4,-8.6],[-185.7,-10.6],[-184.4,-12.4],[-184.8,-13.7],[-184.5,-14.7],[-185.1,-15.4],[-182.1,-27.2],[-180.1,-29.2],[-176.6,-28.9],[-170.1,-25.1],[-168.4,-25.3],[-165.9,-23.0],[-160.6,-20.1],[-159.4,-20.5],[-158.2,-19.7],[-121.3,-15.9],[-112.5,-15.6],[-104.9,-17.3],[-96.8,-13.3],[-95.4,-14.4],[-93.8,-13.6],[-47.8,-19.4],[-42.8,-26.4],[-35.2,-32.4],[-31.4,-43.9],[-24.6,-48.8],[-23.4,-54.2],[-17.6,-61.8],[-18.5,-63.7],[-18.1,-64.3],[96.0,-58.1],[96.8,-56.2],[100.0,-39.5],[100.5,-35.6],[100.7,-26.9],[94.0,-8.0],[97.3,15.6],[74.0,50.8],[74.3,52.2],[73.1,54.1],[74.3,56.4],[73.0,58.4],[74.3,60.9],[73.0,62.9],[74.3,65.3],[73.0,67.4],[78.9,73.8],[79.1,74.9],[77.9,76.3],[78.0,77.3],[84.0,83.5],[84.1,84.6],[83.0,85.8],[82.9,86.5],[87.3,91.3],[87.3,92.5],[86.2,93.7],[86.3,94.6],[91.1,99.5],[91.1,100.5],[90.0,101.8],[89.9,102.5],[92.5,105.3],[92.9,106.2],[91.7,108.7],[94.6,112.2],[93.4,114.9],[96.3,118.4],[95.1,121.2],[98.4,124.9],[98.3,125.9],[97.2,127.4],[98.8,130.3],[97.6,132.2],[98.4,134.4],[97.2,136.3],[98.0,138.5],[96.8,140.3],[97.6,142.5],[96.4,144.4],[97.2,146.7],[96.0,148.8],[96.8,150.8],[95.5,152.8],[96.4,154.8],[95.2,157.2],[96.9,158.9],[99.6,157.7],[103.1,160.7],[104.4,160.4],[104.4,159.2],[100.3,155.3],[99.4,153.8],[100.7,151.5],[99.9,149.1],[101.1,147.5],[100.2,145.2],[101.5,143.4],[100.6,141.2],[101.9,139.3],[101.0,137.0],[102.3,135.2],[101.4,132.9],[102.7,131.1],[100.4,127.9],[101.6,125.2],[98.4,121.6],[98.5,120.5],[99.6,118.8],[96.7,115.4],[96.8,114.3],[97.9,112.7],[95.0,109.1],[95.0,108.2],[96.1,107.0],[96.1,106.2],[93.2,102.9],[93.3,101.9],[94.3,100.8],[94.4,99.9],[91.5,96.6],[91.5,95.7],[92.6,94.5],[92.6,93.7],[87.7,88.6],[87.6,87.5],[88.7,86.1],[88.6,85.1],[83.6,79.9],[83.6,78.8],[84.7,76.9],[81.8,73.6],[81.8,72.6],[83.0,70.7],[80.0,67.3],[80.0,66.2],[81.2,64.5],[79.3,61.7],[80.5,59.9],[80.8,58.4],[82.2,57.4],[82.6,55.7],[84.0,54.7],[84.4,53.0],[85.8,52.0],[86.2,50.3],[87.6,49.3],[88.0,47.6],[89.4,46.6],[89.7,44.9],[91.2,43.9],[91.5,42.3],[93.0,41.2],[93.3,39.6],[94.8,38.5],[95.1,36.9],[96.6,35.8],[97.0,34.2],[98.4,33.1],[98.8,31.5],[100.2,30.4],[100.6,28.8],[102.0,27.8],[102.4,26.1],[103.8,25.0],[104.1,23.3],[105.4,22.3],[105.8,20.6],[107.4,19.1],[106.5,16.9],[107.8,14.7],[105.7,11.9],[107.0,9.4],[105.0,6.7],[106.3,4.2],[104.3,1.6],[105.6,-1.0],[103.6,-3.8],[104.9,-5.7],[104.5,-7.8],[105.7,-9.4],[105.6,-11.4],[106.8,-12.7],[106.7,-14.5],[108.0,-16.0],[107.9,-17.9],[109.2,-19.3],[109.1,-21.2],[110.4,-22.7],[110.0,-24.7],[111.2,-26.7],[109.9,-29.1],[111.1,-31.3],[109.8,-33.7],[111.0,-35.9],[108.9,-38.7],[110.1,-41.5],[107.9,-44.2],[109.1,-47.0],[106.8,-49.8],[108.0,-52.6],[105.6,-55.4],[106.9,-58.2],[104.5,-61.0],[105.7,-63.8],[101.4,-68.3],[100.5,-68.3],[98.6,-67.1],[96.2,-68.7],[93.8,-67.4],[91.5,-68.9],[89.2,-67.6],[86.7,-69.1],[84.3,-67.9],[82.0,-69.4],[79.6,-68.1],[77.3,-69.6],[74.9,-68.4],[72.5,-69.9],[70.2,-68.6],[67.8,-70.1],[65.4,-68.8],[63.1,-70.4],[60.7,-69.1],[58.3,-70.6],[55.9,-69.3],[53.6,-70.8],[51.3,-69.6],[48.9,-71.1],[46.6,-69.8],[44.1,-71.3],[41.8,-70.1],[39.4,-71.6],[37.0,-70.3],[34.7,-71.8],[32.4,-70.5],[29.9,-72.1],[27.6,-70.8],[25.2,-72.3],[22.9,-71.0],[20.5,-72.5],[18.2,-71.3],[15.8,-72.8],[13.5,-71.5],[11.0,-73.0],[8.7,-71.8],[6.3,-73.3],[4.0,-72.0],[1.6,-73.5],[-0.8,-72.2],[-3.2,-73.7],[-5.4,-72.5],[-7.9,-74.0],[-10.2,-72.7],[-12.6,-74.2],[-14.8,-73.0],[-17.4,-74.5],[-19.5,-73.2],[-22.1,-74.7],[-24.0,-73.5],[-26.1,-73.8],[-26.8,-73.1],[-26.7,-70.9],[-27.7,-70.0],[-28.2,-68.5],[-30.0,-67.3],[-29.8,-66.4],[-27.9,-64.4],[-27.9,-63.1],[-28.9,-62.0],[-29.3,-60.5],[-30.8,-59.5],[-30.8,-57.6],[-32.1,-56.3],[-32.6,-54.4],[-33.7,-53.8],[-34.5,-52.4],[-36.2,-51.9],[-37.1,-50.5],[-39.0,-49.7],[-38.9,-47.5],[-40.1,-46.0],[-39.9,-44.1],[-41.2,-42.7],[-41.1,-40.7],[-42.2,-39.6],[-42.8,-38.0],[-44.1,-37.2],[-44.9,-35.8],[-46.5,-35.3],[-47.4,-33.8],[-49.1,-33.2],[-49.6,-31.6],[-51.0,-30.6],[-51.6,-29.1],[-54.0,-27.5],[-56.5,-28.0],[-58.4,-26.7],[-60.4,-27.4],[-62.3,-26.2],[-64.4,-26.9],[-66.2,-25.6],[-68.2,-26.5],[-70.4,-25.2],[-72.5,-26.1],[-74.4,-24.8],[-76.5,-25.6],[-78.3,-24.4],[-80.5,-25.2],[-82.3,-23.9],[-84.5,-24.7],[-86.7,-23.4],[-88.6,-24.2],[-90.3,-23.0],[-92.6,-23.8],[-94.8,-22.5],[-100.1,-27.0],[-102.5,-25.7],[-105.2,-27.3],[-106.9,-26.1],[-108.9,-26.5],[-110.8,-25.2],[-112.6,-25.7],[-114.7,-24.5],[-117.1,-25.9],[-119.1,-24.7],[-121.8,-26.1],[-123.3,-25.0],[-124.3,-24.9],[-126.7,-26.7],[-129.3,-25.4],[-131.8,-27.3],[-134.2,-26.0],[-136.9,-27.8],[-139.4,-26.6],[-141.9,-28.4],[-144.5,-27.2],[-147.0,-29.0],[-149.4,-27.7],[-152.1,-29.6],[-154.6,-28.3],[-157.1,-30.1],[-159.6,-28.9],[-166.1,-34.9],[-167.1,-35.0],[-168.5,-33.9],[-169.6,-34.0],[-175.5,-39.5],[-177.7,-38.3],[-180.1,-39.8],[-182.5,-38.5],[-185.0,-39.7],[-186.1,-37.8],[-187.7,-36.9],[-188.2,-35.3]],"h":[]}],"voids":[{"o":[[-193.5,-81.3],[-193.5,159.8],[119.7,159.8],[119.7,-81.3],[-46.1,-81.3],[-36.5,-75.7],[-27.3,-80.6],[-26.8,-78.5],[-27.1,-74.2],[-27.1,-74.2],[102.7,-67.6],[110.4,-27.8],[102.7,-67.6],[64.1,-69.6],[62.5,-66.5],[54.1,-68.7],[53.0,-70.1],[-27.1,-74.2],[-27.3,-70.8],[-30.4,-67.5],[-30.4,-66.7],[-28.7,-63.0],[-31.7,-58.3],[-32.6,-54.3],[-39.0,-49.7],[-42.6,-38.2],[-49.1,-33.1],[-50.3,-31.5],[-66.5,-32.2],[-80.3,-35.1],[-82.4,-46.9],[-79.7,-57.3],[-81.3,-61.3],[-77.3,-61.4],[-73.4,-68.0],[-68.7,-72.8],[-60.2,-77.4],[-53.7,-75.1],[-53.0,-81.3],[-193.5,-81.3]],"h":[[[-98.6,29.1],[-100.8,27.2],[-107.0,22.5],[-114.8,18.8],[-135.5,3.1],[-184.6,-15.3],[-181.6,-27.0],[-180.1,-28.7],[-177.7,-28.6],[-160.4,-19.4],[-121.4,-15.4],[-112.4,-15.1],[-105.0,-16.8],[-96.8,-12.8],[-47.6,-19.0],[-42.5,-26.0],[-34.8,-32.1],[-31.0,-43.6],[-24.1,-48.5],[-22.9,-53.9],[-17.0,-61.8],[-18.0,-63.8],[95.7,-57.7],[100.0,-35.6],[100.2,-26.9],[93.5,-8.1],[96.8,15.5],[72.8,51.6],[68.2,43.5],[38.0,55.9],[31.4,63.2],[40.7,131.9],[37.5,135.0],[30.2,134.5],[-39.1,134.7],[-43.3,149.5],[-42.9,149.7],[-77.3,149.8],[-81.4,153.3],[-81.5,154.0],[-84.6,147.8],[-93.7,154.9],[-93.5,153.3],[-97.7,149.9],[-111.4,149.9],[-114.4,145.5],[-123.8,140.3],[-130.9,141.4],[-134.4,143.8],[-134.7,139.9],[-176.9,108.4],[-179.1,108.9],[-181.6,108.7],[-183.9,107.7],[-185.8,106.1],[-187.2,103.7],[-187.7,101.3],[-187.4,98.5],[-186.3,96.3],[-184.3,94.3],[-182.1,93.2],[-179.3,92.9],[-176.8,93.4],[-174.5,94.9],[-172.9,96.8],[-171.9,99.4],[-171.9,102.2],[-145.5,121.8],[-149.0,114.4],[-149.6,107.5],[-152.8,109.1],[-158.1,88.6],[-157.2,78.2],[-152.7,72.7],[-152.5,68.4],[-148.3,66.6],[-139.5,67.8],[-132.6,69.6],[-129.0,78.8],[-133.2,86.6],[-129.1,102.3],[-124.3,112.3],[-122.2,114.1],[-117.7,115.4],[-116.2,120.7],[-105.5,126.5],[-105.1,114.9],[-111.4,107.2],[-114.0,103.4],[-117.0,78.4],[-120.1,72.1],[-131.1,53.5],[-125.5,43.2],[-120.2,36.6],[-107.0,22.5],[-98.6,29.1]],[[38.3,55.7],[61.7,46.1],[77.0,69.5],[84.8,84.1],[87.8,92.8],[91.5,92.8],[92.1,94.9],[46.2,112.6],[38.3,55.7]],[[98.1,156.0],[84.2,155.1],[82.2,150.8],[86.4,139.9],[101.3,130.7],[98.1,156.0]]]}],"parcels":[{"o":[[-81.5,154.0],[-81.4,153.3],[-77.3,149.8],[-42.9,149.7],[-84.6,147.8],[-81.5,154.0]],"h":[],"jm":"장"},{"o":[[-31.5,134.7],[-30.1,102.3],[-39.1,134.7],[-31.5,134.7]],"h":[],"jm":"장"},{"o":[[-31.5,134.7],[30.2,134.5],[37.5,135.0],[40.7,131.9],[36.4,100.7],[34.0,99.0],[35.9,96.7],[35.4,92.9],[25.4,92.9],[10.9,102.5],[-7.7,107.0],[-30.1,102.3],[-31.5,134.7]],"h":[],"jm":"장"},{"o":[[87.8,92.8],[43.5,92.9],[46.2,112.6],[88.7,96.2],[87.8,92.8]],"h":[],"jm":"장"},{"o":[[38.4,56.2],[43.5,92.9],[87.8,92.8],[84.8,84.1],[77.0,69.5],[62.0,46.6],[38.4,56.2]],"h":[],"jm":"장"},{"o":[[15.3,81.7],[3.0,93.4],[-19.4,97.9],[-29.0,96.3],[-29.7,95.8],[-30.1,102.3],[-7.7,107.0],[10.9,102.5],[25.4,92.9],[35.4,92.9],[31.4,63.2],[31.0,63.6],[22.0,63.3],[15.3,81.7]],"h":[],"jm":"장"},{"o":[[-126.0,43.9],[-114.0,65.9],[-110.5,69.7],[-100.2,83.0],[-94.8,76.6],[-88.7,67.5],[-92.6,57.8],[-114.9,46.6],[-119.1,35.5],[-126.0,43.9]],"h":[],"jm":"전"},{"o":[[-114.9,46.6],[-92.6,57.8],[-95.1,52.4],[-86.6,38.4],[-93.1,33.8],[-107.0,22.5],[-119.1,35.5],[-114.9,46.6]],"h":[],"jm":"묘"},{"o":[[-105.1,114.9],[-97.0,124.4],[-87.6,126.2],[-77.4,131.5],[-77.2,131.3],[-76.4,108.2],[-72.4,108.4],[-71.0,68.4],[-92.6,57.8],[-88.7,67.5],[-94.8,76.6],[-100.2,83.0],[-103.8,78.3],[-105.1,114.9]],"h":[],"jm":"장"},{"o":[[-110.5,69.7],[-114.0,65.9],[-126.0,43.9],[-131.1,53.5],[-120.1,72.1],[-117.0,78.4],[-114.0,103.4],[-111.4,107.2],[-105.1,114.9],[-103.8,78.3],[-110.5,69.7]],"h":[],"jm":"묘"},{"o":[[-68.4,108.5],[-69.2,131.3],[-65.8,134.8],[-39.1,134.7],[-30.1,102.3],[-29.7,95.8],[-54.5,76.5],[-71.0,68.4],[-72.4,108.4],[-68.4,108.5]],"h":[],"jm":"장"},{"o":[[-50.3,-31.5],[-49.1,-33.1],[-42.6,-38.2],[-39.0,-49.7],[-32.6,-54.3],[-31.7,-58.3],[-28.7,-63.0],[-30.4,-66.7],[-30.4,-67.5],[-27.3,-70.8],[-27.1,-74.2],[-50.3,-31.5]],"h":[],"jm":"답"},{"o":[[-103.5,127.5],[-92.0,128.3],[-86.9,134.1],[-87.6,126.2],[-97.0,124.4],[-105.1,114.9],[-105.5,126.5],[-103.5,127.5]],"h":[],"jm":"임"},{"o":[[-93.7,154.9],[-84.6,147.8],[-86.8,134.8],[-115.0,134.9],[-121.9,136.1],[-127.7,135.2],[-145.5,121.8],[-142.2,133.6],[-136.2,134.3],[-138.0,137.5],[-134.7,139.9],[-134.4,143.8],[-130.9,141.4],[-123.8,140.3],[-114.4,145.5],[-111.4,149.9],[-97.7,149.9],[-93.5,153.3],[-93.7,154.9]],"h":[],"jm":"답"},{"o":[[-127.7,135.2],[-121.9,136.1],[-115.9,135.0],[-105.8,134.9],[-105.5,126.5],[-116.2,120.7],[-117.7,115.4],[-122.2,114.1],[-124.3,112.3],[-126.4,108.1],[-129.1,102.3],[-133.2,86.6],[-129.0,78.8],[-132.6,69.6],[-139.5,67.8],[-148.3,66.6],[-152.5,68.4],[-152.7,72.7],[-157.2,78.2],[-158.1,88.6],[-152.8,109.1],[-149.6,107.5],[-149.0,114.4],[-145.5,121.8],[-127.7,135.2]],"h":[],"jm":"장"},{"o":[[-105.8,134.9],[-97.5,134.9],[-86.8,134.8],[-86.9,134.1],[-92.0,128.3],[-103.5,127.5],[-105.5,126.5],[-105.8,134.9]],"h":[],"jm":"임"},{"o":[[53.0,-70.1],[54.1,-68.7],[62.5,-66.5],[64.1,-69.6],[53.0,-70.1]],"h":[],"jm":"답"},{"o":[[84.2,155.1],[92.8,155.2],[98.1,156.0],[101.3,130.7],[86.4,139.9],[82.2,150.8],[84.2,155.1]],"h":[],"jm":"임"},{"o":[[-87.6,126.2],[-86.8,134.8],[-80.8,134.8],[-77.4,131.5],[-87.6,126.2]],"h":[],"jm":"장"},{"o":[[-86.8,134.8],[-84.6,147.8],[-43.3,149.5],[-77.4,131.5],[-80.8,134.8],[-86.8,134.8]],"h":[],"jm":"임"},{"o":[[-43.3,149.5],[-39.1,134.7],[-65.8,134.8],[-69.2,131.3],[-68.4,108.5],[-76.4,108.2],[-77.4,131.5],[-43.3,149.5]],"h":[],"jm":"장"},{"o":[[-186.4,96.5],[-187.6,99.3],[-187.7,102.1],[-186.8,104.7],[-184.8,107.1],[-181.1,108.8],[-176.9,108.4],[-138.0,137.5],[-136.2,134.3],[-142.2,133.6],[-145.5,121.8],[-171.9,102.2],[-172.3,98.1],[-174.5,94.9],[-177.4,93.2],[-180.7,92.9],[-184.1,94.1],[-186.4,96.5]],"h":[],"jm":"임"},{"o":[[-36.5,-75.7],[-48.0,-82.5],[-47.1,-91.0],[-52.8,-82.8],[-53.7,-75.1],[-60.2,-77.4],[-68.7,-72.8],[-73.4,-68.0],[-77.3,-61.4],[-81.3,-61.3],[-79.7,-57.3],[-82.4,-46.9],[-80.3,-35.1],[-66.5,-32.2],[-50.3,-31.5],[-49.1,-33.1],[-42.6,-38.2],[-39.0,-49.7],[-32.6,-54.3],[-31.7,-58.3],[-28.7,-63.0],[-30.4,-66.7],[-30.4,-67.5],[-27.3,-70.8],[-26.8,-78.5],[-27.3,-80.6],[-36.5,-75.7]],"h":[],"jm":"답"}],"bldg":[[[49.2,93.1],[55.8,103.5],[68.7,95.4],[62.2,84.9],[49.2,93.1]],[[32.4,130.4],[32.3,104.4],[-29.1,103.7],[-28.9,129.7],[32.4,130.4]],[[-173.7,62.5],[-141.1,81.0],[-130.2,62.2],[-162.6,43.0],[-173.7,62.5]],[[-67.1,127.9],[-35.1,128.9],[-34.3,103.0],[-66.3,102.0],[-67.1,127.9]],[[-66.2,98.5],[-52.3,98.8],[-52.2,90.9],[-66.0,90.6],[-66.2,98.5]],[[85.1,88.6],[61.9,49.0],[48.5,56.9],[71.6,96.5],[85.1,88.6]],[[59.3,123.2],[92.1,109.8],[89.5,103.5],[56.7,117.0],[59.3,123.2]],[[79.7,143.4],[99.8,136.2],[91.4,111.9],[71.2,119.1],[79.7,143.4]]],"frame":[[-193.5,-81.3],[119.7,159.8]],"roads":[{"o":[[-137.4,142.3],[-136.6,152.4],[-113.1,135.9],[-113.1,139.2],[31.3,138.8],[31.3,137.6],[64.2,146.1],[52.9,132.3],[41.9,55.3],[38.0,55.9],[34.5,59.7],[35.0,63.0],[31.4,63.6],[31.4,63.1],[31.0,63.6],[22.0,63.3],[20.6,67.3],[27.5,67.5],[36.5,130.6],[31.3,135.9],[31.3,130.8],[-63.0,131.0],[-65.2,128.8],[-67.6,131.1],[-72.1,131.1],[-71.4,112.6],[-67.4,112.8],[-67.2,104.8],[-79.2,104.3],[-80.0,129.8],[-81.3,131.1],[-113.1,131.2],[-113.1,133.5],[-125.0,131.6],[-168.4,99.2],[-170.8,102.4],[-173.9,99.9],[-178.9,106.1],[-175.8,108.6],[-178.2,111.8],[-137.4,142.3]],"h":[[[-129.9,137.9],[-137.5,132.3],[-148.4,124.2],[-129.9,137.9],[-129.9,137.9]]]},{"o":[[-79.8,154.1],[-77.7,156.6],[-74.7,154.1],[31.4,153.8],[31.3,145.8],[-113.0,146.2],[-113.0,154.2],[-98.1,154.1],[-95.0,156.7],[-92.8,154.1],[-79.8,154.1]],"h":[]},{"o":[[69.2,143.7],[64.3,150.0],[76.9,159.8],[83.4,159.8],[85.9,156.7],[69.2,143.7]],"h":[]}]};
@@ -656,26 +803,74 @@ for(const b of CTX.bldg){ const sh=new THREE.Shape(b.map(p=>new THREE.Vector2(p[
     C.castShadow=shadow; C.receiveShadow=true; T.castShadow=shadow; scene.add(C); scene.add(T); };
   make(near,true,canopyG); make(far,false,canopyFar);
 }
-// parked cars (주차 24대 계획 중 배치도 위치) and two trucks at the hanger-door yard
+// parked cars (주차 24대 계획 중 배치도 위치) and two trucks at the hanger-door yard — 측면 실루엣 압출 + 유리·휠·등화류
 { const cols=[0xf2f2f0,0x2b2f33,0xb7bcc1,0xf2f2f0,0x7d2a2a,0x2f4f7a,0xd9d9d6,0x3a3f44];
-  const car=(x,y,a,c)=>{ const g=new THREE.Group(); g.position.set(x,0,-y); g.rotation.y=a; scene.add(g);
-    box(4.6,.75,1.85,new THREE.MeshStandardMaterial({color:c,roughness:.35,metalness:.5}),0,.55,0,g); box(2.6,.6,1.65,new THREE.MeshStandardMaterial({color:0x2a3238,roughness:.2,metalness:.6}),-.2,1.2,0,g); };
+  const ext=(pts,depth,bev=.06)=>{ const s=new THREE.Shape(pts.map(([x,y])=>new THREE.Vector2(x,y))); const g=new THREE.ExtrudeGeometry(s,{depth,bevelEnabled:true,bevelThickness:bev,bevelSize:bev,bevelSegments:3,curveSegments:8});
+    g.translate(0,0,-depth/2); return g; };
+  // 세단/SUV 공용: 하부 차체(후드·트렁크 라인) + 유리 캐빈 + 루프
+  const BODY={sedan:ext([[-2.25,.32],[2.25,.32],[2.3,.62],[2.18,.78],[1.0,.86],[-1.75,.9],[-2.25,.86],[-2.32,.6]],1.68),
+              suv:ext([[-2.3,.38],[2.3,.38],[2.35,.72],[2.2,.92],[1.15,1.0],[-2.25,1.04],[-2.35,.95],[-2.38,.62]],1.72)};
+  const CAB={sedan:ext([[1.0,.84],[.32,1.36],[-1.0,1.38],[-1.72,.88]],1.5,.04), suv:ext([[1.15,.98],[.55,1.64],[-2.05,1.66],[-2.22,1.0]],1.56,.04)};
+  const ROOF={sedan:[1.25,.06,1.48,-.35,1.43], suv:[2.5,.07,1.56,-.75,1.7]};
+  const glass=new THREE.MeshStandardMaterial({color:0x1d2a33,roughness:.08,metalness:.85});
+  const tireG=new THREE.CylinderGeometry(.34,.34,.24,20), hubG=new THREE.CylinderGeometry(.21,.21,.25,14);
+  const tireM=new THREE.MeshStandardMaterial({color:0x17191b,roughness:.85}), hubM=new THREE.MeshStandardMaterial({color:0xc9ced2,roughness:.3,metalness:.9});
+  const headM=new THREE.MeshStandardMaterial({color:0xf3f6f8,emissive:0xdfe8ef,emissiveIntensity:.35,roughness:.2,metalness:.5});
+  const tailM=new THREE.MeshStandardMaterial({color:0xb3121b,emissive:0x5a0508,roughness:.3,metalness:.3});
+  const plateM=new THREE.MeshStandardMaterial({color:0xf4f4f2,roughness:.6}), trimM=new THREE.MeshStandardMaterial({color:0x202326,roughness:.5,metalness:.3});
+  const add=(g,geo,mat,x,y,z,rx=0,rz=0)=>{ const m=new THREE.Mesh(geo,mat); m.position.set(x,y,z); m.rotation.set(rx,0,rz); m.castShadow=true; m.receiveShadow=true; g.add(m); return m; };
+  const car=(x,y,a,c,kind)=>{ const g=new THREE.Group(); g.position.set(x,0,-y); g.rotation.y=a; scene.add(g);
+    const paint=new THREE.MeshStandardMaterial({color:c,roughness:.28,metalness:.6});
+    add(g,BODY[kind],paint,0,0,0); add(g,CAB[kind],glass,0,0,0);
+    const [rl,rh,rw,rx,ry]=ROOF[kind]; box(rl,rh,rw,paint,rx,ry,0,g);
+    box(.12,kind==='suv'?.62:.5,1.52,paint,kind==='suv'?-.55:-.1,kind==='suv'?1.32:1.12,0,g); // B필러
+    for(const s of [-1,1]){
+      for(const wx of [1.42,-1.42]){ add(g,tireG,tireM,wx,.34,s*.82,Math.PI/2); add(g,hubG,hubM,wx,.34,s*.83,Math.PI/2); }
+      box(.08,.12,.34,headM,2.33,.66,s*.6,g,false); box(.06,.14,.3,tailM,-2.37,.72,s*.62,g,false);
+      box(.22,.12,.1,paint,.95,1.0+(kind==='suv'?.12:0),s*.92,g,false); // 사이드미러
+      box(4.0,.04,.03,trimM,0,.42,s*.88,g,false); // 사이드 몰딩
+    }
+    box(.04,.14,.5,plateM,2.36,.48,0,g,false); box(.04,.14,.5,plateM,-2.4,.55,0,g,false);
+    box(.06,.2,1.1,trimM,2.32,.5,0,g,false); // 그릴
+  };
   [[13.6,77.3,0],[13.6,74.7,0],[13.6,72.2,0],[13.6,69.5,0],[13.6,67.0,0],[13.6,64.4,0],[76.4,41.4,.373],[77.4,38.7,.373],[78.3,36.3,.373],[79.4,33.8,.373],[80.4,31.1,.373],[81.3,28.6,.373],[82.3,26.0,.373],[83.3,23.5,.373],[84.2,21.4,.373],[63.8,43.0,-.362],[62.8,40.5,-.362],[61.9,38.0,-.362]]
-    .forEach(([x,y,a],i)=>{ if(i%5!==3) car(x,y,a,cols[i%cols.length]); });
+    .forEach(([x,y,a],i)=>{ if(i%5!==3) car(x,y,a,cols[i%cols.length],i%3===1?'suv':'sedan'); });
+  // 11톤 윙바디 트럭: 캡(앞유리·그릴·범퍼·미러) + 3축 휠 + 리브 적재함 + VIDAN 래핑
+  const ribTex=canvasTex((g,w,h)=>{ g.fillStyle='#ffffff'; g.fillRect(0,0,w,h); for(let x=0;x<w;x+=32){ g.fillStyle='#d6d9db'; g.fillRect(x,0,6,h); } g.fillStyle='#c3c7ca'; g.fillRect(0,0,w,8); g.fillRect(0,h-8,w,8); });
+  const vidanTex=logoTex('vidan');
   const truck=(f,u)=>{ const g=new THREE.Group(); g.matrixAutoUpdate=false; const loc=new THREE.Matrix4().makeTranslation(u,0,-7); g.matrix.copy(f.g.matrix).multiply(loc); scene.add(g);
-    box(13.6,2.9,2.5,new THREE.MeshStandardMaterial({color:0xf4f4f2,roughness:.6}),0,2.45,0,g); box(2.4,2.8,2.45,new THREE.MeshStandardMaterial({color:0x2f6fb5,roughness:.4,metalness:.4}),8.0,1.95,0,g);
-    box(16,.6,2.4,M.hook,1,.6,0,g,false); };
+    const cab=new THREE.MeshStandardMaterial({color:0x2f6fb5,roughness:.3,metalness:.5});
+    box(10.2,2.75,2.48,texRepeat(new THREE.MeshStandardMaterial({map:ribTex,color:0xf6f6f4,roughness:.55}),10,1),-1.6,2.7,0,g);
+    for(const s of [1,-1]){ const p=new THREE.Mesh(new THREE.PlaneGeometry(7.6,1.2),new THREE.MeshStandardMaterial({map:vidanTex,transparent:true,roughness:.5})); p.position.set(-1.6,2.85,s*1.25); if(s<0) p.rotation.y=Math.PI; g.add(p); }
+    box(.08,2.6,2.4,trimM,-6.72,2.7,0,g,false);
+    box(12.0,.35,1.1,M.hook,-.4,1.05,0,g,false);                     // 프레임
+    add(g,ext([[0,0],[2.15,0],[2.25,1.55],[2.05,2.55],[0,2.6]],2.36,.06),cab,4.25,.95,0); // 캡
+    add(g,ext([[2.17,1.45],[2.04,2.38],[.6,2.4],[.6,1.45]],2.44,.02),glass,4.25,.95,0);   // 측창
+    box(.06,1.0,2.1,glass,6.47,2.95,0,g,false);                       // 앞유리
+    box(.08,.55,1.9,trimM,6.48,1.8,0,g,false); box(.2,.35,2.5,new THREE.MeshStandardMaterial({color:0x9aa1a6,roughness:.4,metalness:.7}),6.55,1.15,0,g,false);
+    for(const s of [-1,1]){ box(.07,.18,.42,headM,6.56,1.5,s*.9,g,false); box(.08,.5,.08,trimM,6.35,3.1,s*1.42,g,false); box(.06,.42,.24,glass,6.35,2.95,s*1.5,g,false);
+      add(g,new THREE.CylinderGeometry(.3,.3,1.0,14),hubM,3.5,.95,s*1.0,0,Math.PI/2); }
+    const big=new THREE.CylinderGeometry(.52,.52,.32,22), bigHub=new THREE.CylinderGeometry(.3,.3,.33,16);
+    for(const wx of [5.0,-3.4,-4.7]) for(const s of [-1,1]){ add(g,big,tireM,wx,.52,s*1.05,Math.PI/2); add(g,bigHub,hubM,wx,.52,s*1.06,Math.PI/2); }
+    for(const s of [-1,1]) box(.06,.16,.3,tailM,-6.78,1.05,s*1.0,g,false);
+  };
   truck(FACT[0],50); truck(FACT[1],90);
 }
+// 정문 명판: 진입로가 부지로 들어오는 서측, 진입 도로(북측)를 향하게
+buildNameplate(17.5,59.0,Math.PI);
 const C=window.__siteCenter;
 sun.target.position.copy(C); sun.position.copy(C).add(new THREE.Vector3(-90,160,110));
 sun.shadow.camera.updateProjectionMatrix();
 
 /* ---------- views ---------- */
 const A=FACT[0];
+const BC=FACT[0].center.clone().add(FACT[1].center).multiplyScalar(.5); // 두 주동 중심
 const VIEWS={
-  aerial:()=>portrait()?{pos:C.clone().addScaledVector(A.U,-150).addScaledVector(A.V,-25).add(new THREE.Vector3(0,190,0)),tgt:C.clone().addScaledVector(A.U,-8),fit:1}
-                      :{pos:C.clone().add(new THREE.Vector3(-150,135,175)),tgt:C.clone().add(new THREE.Vector3(0,4,0))},
+  aerial:()=>portrait()?{pos:BC.clone().addScaledVector(A.U,-120).addScaledVector(A.V,-20).add(new THREE.Vector3(0,150,0)),tgt:BC.clone().addScaledVector(A.U,-6),fit:1}
+                      :{pos:BC.clone().add(new THREE.Vector3(-128,86,90)),tgt:BC.clone().add(new THREE.Vector3(-42,2,-20))},
+  silo:()=>({pos:new THREE.Vector3(-34,9,-22).applyMatrix4(A.g.matrix),tgt:new THREE.Vector3(-4,9,13).applyMatrix4(A.g.matrix)}),
+  gate:()=>{ const n=NAMEPLATE.center, f=new THREE.Vector3(-Math.sin(-NAMEPLATE.rot)*0+Math.sin(NAMEPLATE.rot),0,Math.cos(NAMEPLATE.rot));
+    return {pos:n.clone().addScaledVector(f,12).add(new THREE.Vector3(0,2.2,0)).addScaledVector(new THREE.Vector3(f.z,0,-f.x),-8.5),tgt:n.clone().add(new THREE.Vector3(0,.6,0))}; },
   front:()=>({pos:new THREE.Vector3(-28,9,-9).applyMatrix4(A.g.matrix),tgt:new THREE.Vector3(70,4,-6).applyMatrix4(A.g.matrix)}),
   inside:()=>{ const p=new THREE.Vector3(88,3,7).applyMatrix4(A.g.matrix), t=new THREE.Vector3(20,9,14).applyMatrix4(A.g.matrix); return {pos:p,tgt:t}; },
   interior:()=>{ const t=ANNEX.center.clone().add(new THREE.Vector3(0,ann.cur*FH+0.5,0));
@@ -753,7 +948,7 @@ renderer.setAnimationLoop(now=>{
   if(!lblRoot.hidden){ const w=innerWidth,h=innerHeight;
     const inside=FACT.some(f=>{ const q=camera.position.clone().applyMatrix4(f.inv); return q.x>0&&q.x<L&&q.z>0&&q.z<W&&q.y<RIDGE_T; });
     for(const l of labels){ tmp.copy(l.pos()); const d=tmp.distanceTo(camera.position); tmp.project(camera);
-      const ok=l.grp==='room'?(ann.mode==='in'&&l.floor===ann.cur):l.annex?ann.mode==='out':l.grp==='crane'?(d<220&&(inside||!roofs[0].visible)):true;
+      const ok=l.grp==='room'?(ann.mode==='in'&&l.floor===ann.cur):l.annex?ann.mode==='out':l.grp==='crane'?(d<220&&(inside||!roofs[0].visible)):l.grp==='silo'?(d<140&&!inside):true;
       const vis=!l.hide && ok && tmp.z<1 && Math.abs(tmp.x)<1.1 && Math.abs(tmp.y)<1.1;
       l.el.hidden=!vis; if(vis){ l.el.style.left=((tmp.x+1)/2*w)+'px'; l.el.style.top=((1-tmp.y)/2*h)+'px'; } } }
 });
