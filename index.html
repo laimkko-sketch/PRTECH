@@ -721,7 +721,7 @@ function buildAnnex(a){
       mat.map.needsUpdate=true; mat.map.repeat.set((u1-u0)/ft.s,(v1-v0)/ft.s);
       const fl=new THREE.Mesh(new THREE.BoxGeometry(u1-u0,.02,v1-v0),mat);
       fl.position.set((u0+u1)/2,.13+i*.004,(v0+v1)/2); fl.receiveShadow=true; fg.add(fl);
-      lights(fg,r);
+      // lights(fg,r);  // 천장 조명기구: 위에서 내려다볼 때 공중에 떠 보여 표시 안 함
       if(!r.nl){ const lp=r.lp||[(u0+u1)/2,(v0+v1)/2]; labels.push({el:mk('lbl room',r.n),pos:()=>new THREE.Vector3(lp[0],f*FH+2.2,lp[1]).applyMatrix4(g.matrix),grp:'room',floor:f}); } });
     perimeter(fg,f);
     for(const w of WALLS[f]) partition(fg,...w);
